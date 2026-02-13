@@ -33,7 +33,7 @@ library(mFilter)
 library(quantmod)
 library(tis)
 # Load MDFA package from github
-#devtools::install_github("wiaidp/MDFA",force=T)
+devtools::install_github("wiaidp/MDFA",force=T)
 # MDFA package: EURUSD is now part of the data in the package
 library(MDFA)
 
@@ -404,7 +404,6 @@ ar_vec<-lm_obj$coefficients[1+1:p]
 
 # Specify Hamilton filter
 hamilton_filter<-c(1,rep(0,h-1),-ar_vec)
-ts.plot(hamilton_filter,main=paste("Hamilton filter: GDP from ",index(GDPC1["/2019"])[1]," to 2019",sep=""))
 # We can include an intercept 
 intercept<-lm_obj$coefficients[1]
 
@@ -440,7 +439,6 @@ for (j in 1:p)#j<-1
 {
   ma_inv_spect<-ma_inv_spect+ar_vec[j]*exp(-1.i*(h-1+j)*(0:(K))*pi/(K))
 }  
-# We do not invert 
 ma_gamma<-(1-ma_inv_spect)
 # Target: Gamma must be real (absolute value)
 Gamma_ham<-abs(ma_gamma)
@@ -487,7 +485,7 @@ colo<-c("blue","red")
 mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
 
 # Perfect replication
-ts.plot(cbind(imdfa_ham$b,hamilton_filter),col=c("black","red","blue"))
+ts.plot(cbind(imdfa_ham$b,hamilton_filter),col=c("blue","red"))
 
 
 
