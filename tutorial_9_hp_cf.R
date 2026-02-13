@@ -29,7 +29,8 @@ rm(list=ls())
 
 # Load libraries
 library(mFilter)
-library(Quandl)
+# Load data from FRED with library quantmod
+library(quantmod)
 library(tis)
 # Load MDFA package from github
 #devtools::install_github("wiaidp/MDFA",force=T)
@@ -42,33 +43,13 @@ source(paste(getwd(),"/Common functions/plot_func.r",sep=""))
 
 
 
-# One can refresh GDP from Yahoo finance using Quandl (obsolete) or suitable R-packages (omitted)
-download_data_from_Quandl<-F
+# One can refresh GDP using getSymbols
+download_data<-F
 
-if (download_data_from_Quandl)
+if (download_data)
 {  
-  start_year<-1947 
-  start_date=paste(start_year,"-01-01",sep="")
-# Last data point
-  end_date<-format(Sys.time(), "%Y-%m-%d")
-  end_year<-as.double(substr(end_date,1,4))
-# Load Real GDP
-#Title:               Real Gross Domestic Product, 3 Decimal
-#Series ID:           GDPC96
-#Source:              US. Bureau of Economic Analysis
-#Release:             Gross Domestic Product
-#Seasonal Adjustment: Seasonally Adjusted Annual Rate
-#Frequency:           Quarterly
-#Units:               Billions of Chained 2009 Dollars
-#Date Range:          1947-01-01 to 2014-07-01
-#Last Updated:        2014-11-25 7:56 AM CST
-#Notes:               A Guide to the National Income and 
-#                     Product Accounts of the United States 
-#                     (NIPA) - 
-
-  Quandl.api_key("Provide your quandl API-key")
-
-  mydata<-Quandl(c("FRED/GDPC96"),start_date=start_date,end_date=end_date,type="xts")
+  getSymbols('GDPC1',src='FRED')
+  mydata<-GDPC1
 } else
 {
 # Load mydata (GDP-series)
@@ -389,6 +370,126 @@ freq_axe<-rep(NA,len)
 freq_axe[1]<-0
 freq_axe[(1:6)*len/6]<-paste("Lag ",as.integer(1+(1:6)*len/6),sep="")
 mplot_func(mplot,freq_axe,plot_title,title_more,insamp,colo)
+
+
+
+
+#--------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
+# Exercise 3: Replication Hamilton filter
+# The slight difficulty here is that the (target) Hamilton filter is causal. Hence the target Gamma is complex
+# -Solution: we transfer the phase from the target to the spectrum 
+#   This way the target is real-valued and the filter is real-valued too
+
+y<-lgdp
+len<-length(y)
+#------------------
+# 3.1 Hamilton filter
+# Settings proposed by Hamilton for quarterly data
+h<-2*4
+p<-4
+
+# Regression of y_{t+h} on y_t,y_{t-1},...,y_{t-p}
+explanatory<-y[(p):(len-h)]
+for (i in 1:(p-1))
+  explanatory<-cbind(explanatory,y[(p-i):(len-h-i)])
+target<-y[(h+p):len]
+# The sample begins in 1960
+lm_obj<-lm(y[(h+p):len]~explanatory)
+
+# Only the first coefficient is significant, as is often the case in applications to non-stationary economic series.
+#   Model is close to a random-walk
+summary(lm_obj)
+ar_vec<-lm_obj$coefficients[1+1:p]
+
+# Specify Hamilton filter
+hamilton_filter<-c(1,rep(0,h-1),-ar_vec)
+ts.plot(hamilton_filter,main=paste("Hamilton filter: GDP from ",index(GDPC1["/2019"])[1]," to 2019",sep=""))
+# We can include an intercept 
+intercept<-lm_obj$coefficients[1]
+
+#----------------------------
+# 3.2 Replication by DFA
+K<-1200
+
+# 3.2.1.Compute spectral density
+# First need AR model
+explanatory_spect<-y[(p):(len-1)]
+for (i in 1:(p-1))
+  explanatory_spect<-cbind(explanatory_spect,y[(p-i):(len-1-i)])
+target_spect<-y[(1+p):len]
+lm_obj_spect<-lm(target_spect~explanatory_spect)
+ar_spect_vec<-lm_obj_spect$coefficients[1+1:p]
+
+# Spectrum: AR(p) filter
+ar_inv_spect<-rep(0,K+1)
+for (j in 1:p)#j<-1
+{
+  ar_inv_spect<-ar_inv_spect+ar_spect_vec[j]*exp(-1.i*j*(0:(K))*pi/(K))
+}  
+ar_spect<-abs(1/(1-ar_inv_spect))
+ts.plot(ar_spect)
+
+weight_func<-abs(cbind(ar_spect,ar_spect))
+
+# 3.2.2.Compute target Gamma:
+# Note that we treat this as a MA filter, applied directly to x_t 
+#   (in contrast, the spectrum is a AR filter applied to epsilon_t)
+ma_inv_spect<-rep(0,K+1)
+for (j in 1:p)#j<-1
+{
+  ma_inv_spect<-ma_inv_spect+ar_vec[j]*exp(-1.i*(h-1+j)*(0:(K))*pi/(K))
+}  
+# We do not invert 
+ma_gamma<-(1-ma_inv_spect)
+# Target: Gamma must be real (absolute value)
+Gamma_ham<-abs(ma_gamma)
+# We shift spectrum of target by argument of ma_gamma to account for phase of target (ma_gamma)
+weight_func_ham<-cbind(weight_func[,1]*exp(-1.i*Arg(ma_gamma)),weight_func[,2])
+
+# Target is identity
+#Gamma_ham<-rep(1,K+1)
+
+par(mfrow=c(2,1))
+colo<-c("blue","red")
+insamp<-1.e+99
+mplot<-abs(as.matrix(Gamma_ham))
+plot_title<-"Target Gamma"
+freq_axe<-rep(NA,K+1)
+freq_axe[1]<-0
+freq_axe[1+(1:6)*K/6]<-c(paste(c("",2:5),"pi/6",sep=""),"pi")
+mplot_func(mplot,freq_axe,plot_title,title_more,insamp,colo)
+# Plot log spectrum: weight_func must be squared
+mplot<-as.matrix(abs(weight_func_ham))
+plot_title<-"Spectrum"
+mplot_func(mplot,freq_axe,plot_title,title_more,insamp,colo)
+
+
+L<-length(hamilton_filter)
+i1<-i2<-F
+weight_constraint<-shift_constraint<-1
+Lag<-0
+
+imdfa_ham<-MDFA_mse_constraint(L,weight_func_ham,Lag,Gamma_ham,i1,i2,weight_constraint,shift_constraint)$mdfa_obj
+
+par(mfrow=c(1,1))
+omega_k<-pi*(0:K)/K
+amp_mse<-abs(imdfa_ham$trffkt)
+mplot<-as.matrix(amp_mse)
+mplot[1,]<-NA
+colnames(mplot)<-NA
+ax<-rep(NA,nrow(mplot))
+ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
+plot_title<-paste("Amplitude ")
+insamp<-1.e+90
+title_more<-dimnames(mplot)[[2]]
+colo<-c("blue","red")
+mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
+
+# Perfect replication
+ts.plot(cbind(imdfa_ham$b,hamilton_filter),col=c("black","red","blue"))
+
+
 
 #-----------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------
