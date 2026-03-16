@@ -52,19 +52,19 @@ mplot_func <- function(mplot, ax, plot_title, title_more, insamp, colo) {
 
 plot_estimate_func<-function(mdfa_obj,weight_func,Gamma)
 {
-  par(mfrow=c(1,1))
+  par(mfrow=c(2,2))
   b<-mdfa_obj$b
   colo<-rainbow(ncol(b))
   plot(b[,1],type="l",main=paste("Filter coefficients",sep=""),
        axes=F,xlab="Lag",ylab="Coef",ylim=c(min(b),max(b)),col="black")
-  mtext(colnames(weight_func)[2],line=-1,col="black")
+#  mtext(colnames(weight_func)[2],line=-1,col="black")
   if (ncol(b)>1)
   {
     for (i in 2:ncol(b))
     {
       lines(b[,i],col=colo[i])
       # We take the i+1 colname from weight_func because the first column is the target        
-      mtext(colnames(weight_func)[i+1],line=-i,col=colo[i])
+#      mtext(colnames(weight_func)[i+1],line=-i,col=colo[i])
       
     }
   }
@@ -76,16 +76,16 @@ plot_estimate_func<-function(mdfa_obj,weight_func,Gamma)
   plot(Arg(mdfa_obj$trffkt[,1])/((0:(nrow(weight_func)-1))*pi/(nrow(weight_func)-1)),type="l",main=paste("Time-shift concurrent, denseness=",K,sep=""),
        axes=F,xlab="Frequency",ylab="Time shift",col="black")
   # We take 2-nd colname from weight_func because the first column is the target        
-  mtext(paste("Shift ",colnames(weight_func)[2],sep=""),line=-1,col="black")
+#  mtext(paste("Shift ",colnames(weight_func)[2],sep=""),line=-1,col="black")
   lines(0.5*abs(weight_func[,1])/max(abs(weight_func[,1])),col="red",lwd=3)
-  mtext("Spectrum (red bold)",line=-3,col="red")
+  mtext("Time-shift",line=-3,col="black")
   if (ncol(abs(mdfa_obj$trffkt))>1)
   {
     for (i in 2:ncol(abs(mdfa_obj$trffkt)))
     {
       lines(abs(mdfa_obj$trffkt)[,i],col=colo[i])
       # We take the i+1 colname from weight_func because the first column is the target        
-      mtext(paste("Shift ",colnames(weight_func)[i+1],sep=""),line=-i,col=colo[i])
+#      mtext(paste("Shift ",colnames(weight_func)[i+1],sep=""),line=-i,col=colo[i])
       
     }
   }

@@ -1,6 +1,4 @@
-# To do: link to multi-step ahead forecast paper and companion paper
-
-# This tutorial is made of 6 exercises
+# This tutorial consists of 6 introductory exercises
 
 # Purpose of tutorial: 
 # DFA can replicate classic (MSE) one- and multi-step ahead forecasting by 
@@ -18,7 +16,7 @@
 
 
 # Functions and parameters: throughout this tutorial we rely on the function MDFA_mse which is the MSE-(mean-square error norm) wrapper to the generic MDFA estimation routine. 
-# By omitting many additional features (to be discussed in later tutorials) this wrapper allows to focus on the relevant problem.
+# By omitting many additional features (to be discussed in later tutorials) this wrapper allows to focus on the relevant problem structure.
 # We here learn handling of the parameters in the call to MDFA_mse by replicating a classic one-step ahead forecast framework. We are then able 
 # to replicate classic time series approaches.
 
@@ -54,47 +52,50 @@ source("Common functions/arma_spectrum.r")
 #-------------------------------------------------------------------------------------------------
 # Example 1: one-step ahead forecasting
 #   DFA requires the user to supply a 'target' and a 'spectrum'; DFA then returns an optimal estimate 
-#     -Optimality: Mean-square error (MSE) or beyond MSE (ATS-trilemma)
+#     -Optimality: Mean-square error (MSE) or `beyond' MSE (ATS-trilemma)
 # In this example: we illustrate how to set-up one-step ahead forecasting in DFA
 # General design decisions:
 #   MSE (mean-square error criterion)
 #   Univariate design
 #   White noise spectrum
 
-# DFA is specified in the frequency-domain, see McElroy/Wildi
+# DFA is specified in the frequency-domain, see McElroy/Wildi (papers in Literature folder of this repository)
 #   -K defines the frequency-grid for estimation: all frequencies omega_j=j*pi/K, j=0,1,2,...,K are considered
 #   -Tradeoff: larger K (denser grid) means better MSE (if true process is white noise) but longer computation-time
 #   -We here consider a partition of the interval [0,pi] in K=600 equally-distanced frequency supports
 K<-600
 # Spectrum: white noise assumption
 #   -First column is spectrum of target, second column is spectrum of explanatory variable
-#   -In a univariate design target and explanatory data are the same
+#   -In a univariate design, target and explanatory data are the same
 weight_func<-matrix(rep(1,2*(K+1)),ncol=2)
 colnames(weight_func)<-c("spectrum target","spectrum explanatory")
+# Note: we could use any strictly positive real number for the spectrum 
+head(weight_func)
 
 # White noise: flat spectrum (all frequencies are loaded equally by the process)
-plot(weight_func[,1],type="l",main=paste("White noise spectrum, denseness=",K,sep=""),
-     axes=F,xlab="Frequency",ylab="Amplitude",col="black")
+plot(weight_func[,1],type="l",main=paste("White noise spectrum, denseness=",K,sep=""),axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext(colnames(weight_func)[1],line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
 # Target forecasting: 
 #   -When forecastin a series we are interested in all frequencies equally
+#     -When nowcasting a trend we are mainly interested in the lower frequencies: Gamma~0 for higher frequencies
 #   -Target (Gamma) is a forward-looking allpass filter in the frequency-domain
+#     -In contrast to the above spectrum (where the constant can be an arbitrary positive number), 
+#         the target Gamma is equal to one: the filter passes all components with equal weight one, ideally.
 Gamma<-rep(1,K+1)
 plot(Gamma,type="l",main=paste("Allpass forecast target, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
-# One step ahead: Lag=-1
+# Specify forecast horizon
+# One step ahead: Lag=-1 (positive Lags mean backcasting)
 Lag<--1
 # Filter length: number of weights/coefficients of forecast filter
 L<-10
@@ -113,18 +114,7 @@ par(mfrow=c(1,1))
 b<-mdfa_obj$b
 colo<-rainbow(ncol(b))
 plot(b[,1],type="l",main=paste("Filter coefficients",sep=""),
-     axes=F,xlab="Lag",ylab="Coef",ylim=c(min(b),max(b)),col="black")
-mtext(colnames(weight_func)[2],line=-1,col="black")
-if (ncol(b)>1)
-{
-  for (i in 2:ncol(b))
-  {
-    lines(b[,i],col=colo[i])
-    # We take the i+1 colname from weight_func because the first column is the target        
-    mtext(colnames(weight_func)[i+1],line=-i,col=colo[i])
-    
-  }
-}
+     axes=F,xlab="Lag",ylab="Coef",ylim=c(-1,1),col="black")
 axis(1,at=1:L,labels=1:L)
 axis(2)
 box()    
@@ -136,8 +126,9 @@ box()
 plot_estimate_func(mdfa_obj,weight_func,Gamma)
 
 # Comments
-#   -The amplitude function of the MSE-filter is close to zero, as desired (ideally, it would equate to zero)
-#   -It is not exactly zero because K is finite
+#   -The amplitude function of the MSE-filter (black) is close to zero, as desired (ideally, it would equate to zero)
+#     -It is not exactly zero because K is finite
+#   -The time-shift is irrelevant (since the amplitude is vanishing)
 #   -For K/L>10 mismatch is generally negligible  
 
 
@@ -162,9 +153,10 @@ plot_T<-T
 # This function computes the spectrum of the ARMA-process
 spec<-arma_spectrum_func(a1,b1,K,plot_T)$arma_spec
 
-# Fill into weight_func: target (first column) and explanatory (second column); both are identical for univariate problems
-weight_func<-cbind(spec,spec)
+# Fill into weight_func: target spectrum (first column) and explanatory spectrum (second column) are identical for univariate problems
+weight_func<-abs(cbind(spec,spec))
 colnames(weight_func)<-c("spectrum target","spectrum explanatory")
+head(weight_func)
 
 # Specify Lag
 #   1. k-step ahead forecasting: Lag<--k (negative integer or negative real number: in the latter case one forecasts between two consecutive future time points)
@@ -177,13 +169,15 @@ L<-10
 # Estimation based on MDFA-MSE wrapper
 mdfa_obj<-MDFA_mse(L,weight_func,Lag,Gamma)$mdfa_obj 
 
+# MDFA_mse returns various objects that we shall describe along the series of tutorials
 names(mdfa_obj)
+# Filter weight: 1-step ahead predictor
 mdfa_obj$b
 
 # The following function plots 
 #   -the coefficients
 #   -the time-shift and
-#   -the amplitude of the filter
+#   -the amplitude of the filter (one step ahead predictor: black)
 plot_estimate_func(mdfa_obj,weight_func,Gamma)
 
 
@@ -203,15 +197,16 @@ plot_estimate_func(mdfa_obj,weight_func,Gamma)
 
 # 2. Nowcasting: Lag=0
 #   -For any ARMA-process the optimal filter has weights 1,0,0,....
-#   -This is a trivial estimation problem because our target is an allpass: for lowpass/bandpass/highpass the estimation problem is nomore trivial
+#   -This is a trivial estimation problem because our target is an allpass: for lowpass/bandpass/highpass the estimation problem is no more trivial
 
 # 3. Backcasting: Lag>0
 #   -For any process the optimal filter has weight 1 at 'lag' specified by Lag and otherwise 0
-#   -This is a trivial estimation problem because our target is an allpass: for lowpass/bandpass/highpass the estimation problem is nomore trivial
+#   -This is a trivial estimation problem because our target is an allpass: for lowpass/bandpass/highpass the estimation problem is no more trivial
 
 # 4. For real-valued Lag the filter interpolates the data between consecutive (future or past) time-points
 
-
+# 5. A negative time-shift of the predictor signifies a lead (advancement): this is a desirable property when predicting a future observation. 
+#     -Ideally, the shift is equal to Lag for all frequencies
 
 #-----------------------------------
 # Example 3: compare DFA with classic arima R-code
@@ -251,7 +246,7 @@ plot_T<-T
 spec<-arma_spectrum_func(a1,b1,K,plot_T)$arma_spec
 
 # Fill spec into weight_func: target (first column) and explanatory (second column); both are identical for univariate problems
-weight_func<-cbind(spec,spec)
+weight_func<-abs(cbind(spec,spec))
 colnames(weight_func)<-c("spectrum target","spectrum explanatory")
 
 # Filter length: number of weights/coefficients of forecast filter
@@ -292,10 +287,13 @@ abline(v=21)
 
 
 # Use dft
-weight_func<-cbind(per(x,T)$DFT,per(x,T)$DFT)
+weight_func<-abs(cbind(per(x,T)$DFT,per(x,T)$DFT))
 colnames(weight_func)<-c("spectrum target","spectrum explanatory")
+par(mfrow=c(1,1))
+# The DFT is a noisy version of the smooth ARMA spectrum in the previous exercise
+ts.plot(weight_func,main="DFT of ARMA process")
 
-
+# Frequency resolution is length of DFT
 K<-nrow(weight_func)-1
 # Target forecasting: 
 #   -We are interested in all frequencies equally
@@ -341,7 +339,7 @@ abline(v=21)
 # Example 5: we compare the non-parametric DFA, relying on the dft, to the best possible forecast approach in an out-of-sample experiment
 #   Specifically, for each realization we compute out-of-sample forecasts of non-parametric DFA and of best approach and take the mean of the squared forecast error
 # Note that 
-#   1. DFA based on non-parametric dft does not assume any 'a priori' knowledge  
+#   1. DFA based on non-parametric dft does not assume any 'a priori' knowledge (model)
 #   2. This framework favors the arma-based approach 
 #     -we assume knowledge of the true data-generating process (true model-orders) for the arma-forecast
 #     -clearly, under these conditions, arma is the best possible approach (inherited from maximum likelihood concept)
@@ -500,6 +498,6 @@ sqrt(mean(mse_burg)/mean(mse_dfa))
 #-------------------------------------------------------------------------
 # Wrap-up: what did we learn
 # DFA can replicate classic (MSE) one- and multi-step ahead forecasting by 
-#   -specifying a corresponding target (allpass) and forecast horizon (Lag) 
+#   -specifying a corresponding target (allpass) and forecast horizon (Lag<0) 
 #   -specifying a corresponding spectral estimate
-# A non-parametric DFA based on the dft performs nearly as well as the true model
+# A non-parametric DFA based on the dft performs nearly as well as the true model (assuming some elementary care of overfitting)
