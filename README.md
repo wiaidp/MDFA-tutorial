@@ -7,9 +7,9 @@ https://github.com/wiaidp/MDFA-tutorial
 There are four sub folders in this project: Common functions, Literature, output, Tutorials.
 Tutorials are numbered in increasing order of complexity.
 
-Start the tutorial: click on the R project icon (in the main folder MDFA-tutorial) to open the project in R Studio. Load any of the tutorials in the Tutorials sub folder into R Studio. Run the code.
+Start the tutorial: click on the R project icon (in the main folder MDFA-tutorial) to open the project in R Studio. Load any of the tutorials contained in the Tutorials sub folder into R Studio. Run the code.
 
-The MDFA  is a prediction approach that emphasizes the structure of prediction problems and the importance of aligning forecasting methods with the forecaster’s research priorities. 
+The MDFA  is a prediction approach that emphasizes the structure of generic prediction problems (one step-ahead, multi-steap ahead, signal extraction) and the importance of aligning forecasting methods with the forecaster’s research priorities. 
 
 Prediction tasks may take several forms. One may seek to forecast the next observation (one-step-ahead), predict values further into the future (multi-step-ahead), or estimate weighted combinations of future observations. 
 The latter arises naturally in applications such as signal extraction, trend estimation, and seasonal adjustment. Because these objectives differ in structure, no single fixed criterion can adequately address them all.
