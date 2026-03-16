@@ -2,7 +2,7 @@ About Me
 
 
 
-My name is Marc Wildi. I am a Professor of Econometrics at the Zurich University of Applied Sciences. My primary research interests lie in forecasting and signal extraction. Over the years, I have developed (either alone or in cooperation with fellow researchers) a number of novel forecasting frameworks designed to tackle real-world prediction challenges and to reconcile various — sometimes competing — research objectives within a unified forecast optimization criterion:
+My name is Marc Wildi. I am a Professor of Econometrics at the Zurich University of Applied Sciences. My primary research interests lie in forecasting and signal extraction. Over the years, I have developed (partly alone, partly in cooperation with fellow researchers) a number of novel forecasting frameworks designed to tackle real-world prediction challenges and to reconcile various — sometimes competing — research objectives within a unified forecast optimization criterion:
 
 
 
@@ -20,7 +20,7 @@ c) Look-Ahead DFP and PCS (initiated in 2024): available in a separate GitHub re
 
 
 
-
+\####
 
 Research:
 
@@ -84,7 +84,7 @@ Quast, J., van Norden, S. \& Wildi, M. (2026). Credit cycles and credit crises: 
 
 
 
-
+\####
 
 
 
