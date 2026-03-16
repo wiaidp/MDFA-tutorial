@@ -1,9 +1,8 @@
-# To do: link to optimal filter paper and to companion paper
 
 # Purpose of tutorial: illustrate (M)DFA user-interface, understand and interpret MSE solutions, understand overfitting
 
 # In previous forecasting-tutorial we emphasized a particular target: Gamma was an (anticipative: Lag<0) allpass filter
-#   -Here we propose generic targets, including lowpass, bandpass, highpass, Hodrick-Prescott (not implemented yet), arbitrary,....
+#   -Here we propose generic targets, including lowpass, bandpass, highpass, Hodrick-Prescott (see tutorial 9), arbitrary...
 # We also propose different spectra and illustrate the main ideas behind the MSE optimization criterion 
 # We interpret important characteristics of the MSE-solution: amplitude and time-shift functions
 # We provide a thorough understanding of (the mechanism of) overfitting in the DFA-framework
@@ -17,7 +16,7 @@
 #   -For illustration purposes we restrict our analysis to univariate examples
 #   -MSE-criterion (no customization)
 #   -Unconstrained filters (no regularization)
-#   -Customization and regularization will be tackled in separate tutorials
+#   -Customization and regularization will be addressed in separate tutorials
 
 # Functions and parameters: throughout this tutorial we rely on the same function MDFA_mse as used previously and we learn how to (better) understand 
 # its parameters in a univariate signal extraction (nowcasting) framework. In particular, this tutorial will emphasize Gamma (arbitrary target) and 
@@ -52,10 +51,10 @@ source("Common functions/mdfa_trade_func.r")
 
 #-------------------------------------------------------------------------------------------------
 # Play with target of DFA
-#   DFA requires the user to supply a 'target' and a 'spectrum'; DFA then returns an optimal estimate 
-#     -Optimality: Mean-square error (MSE) or beyond MSE (ATS-trilemma)
-# In the following examples: illustration of various targets
-#   This is more general than state-of-the-art forecast approaches
+#   DFA requires the user to supply a 'target' and a 'spectrum'; DFA then returns an optimal estimate (predictor) 
+#     -Optimality: Mean-square error (MSE) or `beyond' MSE (ATS-trilemma)
+# In the following examples: we illustrate various targets
+#   This is more general than classic SOTA forecast approaches
 # Design:
 #   MSE
 #   Univariate
@@ -72,13 +71,13 @@ K<-600
 weight_func<-matrix(rep(1,2*(K+1)),ncol=2)
 colnames(weight_func)<-c("target","explanatory")
 
+par(mfrow=c(1,1))
 # White noise: flat spectrum (all frequencies are loaded equally by the process)
 plot(weight_func[,1],type="l",main=paste("White noise spectrum, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext(colnames(weight_func)[1],line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -92,8 +91,7 @@ plot(Gamma,type="l",main=paste("Allpass forecast target, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 # One step ahead: Lag=-1
@@ -125,12 +123,12 @@ plot_estimate_func(mdfa_obj,weight_func,Gamma)
 periodicity<-10
 cutoff<-pi/periodicity
 Gamma<-(0:(K))<=K*cutoff/pi+1.e-9
+par(mfrow=c(1,1))
 plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -161,6 +159,7 @@ id_obj$mean_holding_time
 
 # Idea: the user can specify a periodicity which matches his particular interests (more flexible than classic time series approaches)
 # Problem: the ideal filter cannot be applied in 'real-time' because it is not causal
+#   The red line in the above plot does not extend to the sample end
 # Solution: approximate Gamma by a real-time (causal) filter i.e. use DFA (see examples below)
 
 
@@ -229,8 +228,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicities=",periodicity_low,"
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -264,8 +262,7 @@ plot(Gamma_arbitrary,type="l",main="Arbitrary target",
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -291,8 +288,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", dens
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -312,11 +308,14 @@ plot_estimate_func(mdfa_obj_noise_mse,weight_func_noise,Gamma)
 # Comments
 #   1. The filter coefficients in the first plot are one-sided (causal filter)
 #   2. Since the filter does not look into the future, the output will be delayed (with respect to the non-causal target)
-#     The corresponding delay/lag can be seen in the second plot (time-shift)
+#     The corresponding delay/lag can be seen in the second plot (time-shift): the lag (positive shift) is between 2 and 4 time units in the passband
 #   3. The fit of the target (violet line last plot) by the (DFA-) amplitude function can be 
 #     seen in the last plot
 #   4. Amplitude and shift differ from target: 
-#     MSE-criterion in DFA makes an optimal 'mixed-fit' of both functions to target
+#     -MSE-criterion in DFA makes an optimal 'combined-fit' of both functions to target
+#     -Improving the amplitude fit would worsen the time-shift (larger lag)
+#     -Improving the time-shift (smaller lag) would worsen the amplitude
+#     -MSE represents a particular combination of amplitude- and time-shift fit.
 
 
 # Compare output of (non-causal) ideal filter and DFA real-time (MSE solution) 
@@ -335,12 +334,11 @@ filt_obj<-filt_func(x,b)
   
 output_dfa<-filt_obj$yhat
 output_dfa[1:(L-1)]<-NA
-
+par(mfrow=c(1,1))
 # The filtered series (red line in plot below) is smooth: high-frequency noise has been damped
 ts.plot(output_ideal,col="blue",main="Output of ideal lowpass (blue) vs DFA (red)")
 lines(output_dfa,col="red")
-
-# Comments: output of ideal filter (blue) is not available towards sample-end: DFA computes a 'best' (MSE) one-sided filter which runs till sample-end
+# Comments: output of ideal filter (blue) is not available towards sample-end: DFA computes a 'best' (MSE) one-sided filter which runs to the sample-end
 
 # Let's now zoom into the plot and have a closer look at both series
 anf<-400
@@ -349,7 +347,7 @@ ts.plot(output_ideal[anf:enf],col="blue",main="Output of ideal lowpass (blue) vs
 lines(output_dfa[anf:enf],col="red")
 abline(h=0)
 
-# We can see that DFA-output (red) is noisier (amplitude does not vanish in stopband) and slightly shifted to the right (time-shift is not zero)
+# We can see that DFA-output (red) is noisier (amplitude does not vanish in stopband) and slightly shifted to the right (time-shift is not postive: non-zero lag)
 #   Both effects (noise leakage and delay) can be explained/understood by looking at amplitude and time-shift functions
 #   Later tutorial: improve noise suppression and reduce lag (customization)
 
@@ -389,8 +387,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", dens
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -406,19 +403,19 @@ b<-mdfa_obj_ar1_mse$b
 plot_estimate_func(mdfa_obj_ar1_mse,weight_func,Gamma)
 
 # Note that we altered only the spectrum: AR(1) instead of white noise
-# We now compare the previous amplitude function (example 5,white noise) with the new one (ar(1)) and  and interpret the result
+# We now compare the previous amplitude function (example 5,white noise) with the new one (ar(1)) and  interpret the result
 
 plot_compare_two_DFA_designs(mdfa_obj_noise_mse,mdfa_obj_ar1_mse,weight_func_noise,weight_func_ar1,Gamma)
   
 # Interpretation
-#   In the top-plot (white noise) the spectrum is flat: each frequency is equally important in DFA-criterion (see Wildi/McElroy)
-#   In the bottom-plot (ar(1)) the spectrum is larger towards the lower frequencies (assuming a1>0).
+#   In the top-plot (white noise) the spectrum is flat (red): each frequency is equally important in DFA-criterion (see Wildi/McElroy)
+#   In the bottom-plot (ar(1)) the spectrum (red) is larger towards the lower frequencies (assuming a1>0).
 #     The lower frequencies dominate in an AR(1)-process with a1>0
-#     Therefore the match of the target (violet) and DFA-amplitude (black) is better towards the lower ferquencies for the AR(1)-process (bottom plot).
-#     In contrast, the fit towards the higher frequencies is poorer for the AR(1) (when compared to white noise)
+#     Therefore the match of the target (violet) and DFA-amplitude (black) is better towards the lower frequencies for the AR(1)-process (bottom plot).
+#     In contrast, the fit towards the higher frequencies is poorer for the AR(1) (when compared to white noise): larger noise leakage!
 
 # Idea: the spectrum modulates the quality of the fit:
-#  DFA-amplitude (time-shift) are matching the target better at those frequencies which are more heavily loaded (larger spectrum)
+#  DFA-amplitude (and time-shift, not shown) are matching the target better at those frequencies which are more heavily loaded (larger spectrum)
 
 # Let's illustrate the previous idea (DFA MSE-criterion) by altering deliberately the spectrum
 #---------------------------------------------------------------------------------------
@@ -434,8 +431,7 @@ weight_func_tweaked[nrow(weight_func_tweaked)/2,]<-100
 plot(abs(weight_func_tweaked[,1]),type="l",main=paste("Tweaked ar(1)-spectrum, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -451,8 +447,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", dens
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -488,8 +483,7 @@ weight_func_tweaked[10,]<-100
 plot(abs(weight_func_tweaked[,1]),type="l",main=paste("Tweaked ar(1)-spectrum, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -505,8 +499,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", dens
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -553,8 +546,7 @@ weight_func_tweaked[10,]<-100
 plot(abs(weight_func_tweaked[,1]),type="l",main=paste("Tweaked ar(1)-spectrum, denseness=",K,sep=""),
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -574,8 +566,7 @@ plot(Gamma,type="l",main=paste("Ideal lowpass, periodicity=",periodicity,", dens
      axes=F,xlab="Frequency",ylab="Amplitude",col="black")
 # We take 2-nd colname from weight_func because the first column is the target        
 mtext("Target",line=-1,col="black")
-axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6",
-                                  "4pi/6","5pi/6","pi"))
+axis(1,at=c(0,1:6*K/6+1),labels=c("0","pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi"))
 axis(2)
 box()
 
@@ -605,7 +596,7 @@ plot_estimate_func(mdfa_obj_tweaked_mse,weight_func_tweaked,Gamma)
 #       The amplitude matches the target perfectly (both curves are indistinguishable)
 #       The shift is zero in the passband
 #       This is a very bad example of extreme overfitting!!!!!
-#       For L>2*K the system is singular (the numerical optimization breaks down): there are more parameters available than system-equations
+#       For L>2*K the system is singular (the numerical optimization breaks down): there are more parameters to be fitted than available system-equations
 #   2. For L=10: look what happens when selecting a much larger peak-value: set weight_func_tweaked[10,]<-10000
 #     Hint: the degrees of freedom are modestly-sized so the filter cannot overfit
 #       For increasing (arbitrarily large) peak-values of the spectrum the amplitude and the shift match the target arbitrarily well towards the peak-frequency
