@@ -6,19 +6,19 @@ The MDFA Tutorial is a collection of exercises and case studies designed to intr
 
 
 
-
+\####
 
 Author: Marc Wildi — https://marcwildi.com
 
-
+\####
 
 Repository: https://github.com/wiaidp/MDFA-tutorial
 
-
+\####
 
 Background (references \& links): https://wiaidp.github.io/MDFA-tutorial/about
 
-
+\####
 
 Project Structure:
 
@@ -38,7 +38,7 @@ The project directory is organized into four sub-folders:
 
 
 
-
+\####
 
 
 
@@ -46,7 +46,7 @@ Getting started: Open the R project by clicking the project icon located in the 
 
 
 
-
+\####
 
 About the MDFA:
 
@@ -54,7 +54,7 @@ The MDFA is a prediction framework built around two core ideas i) recognizing th
 
 
 
-
+\####
 
 Prediction tasks can take many forms:
 
@@ -76,7 +76,7 @@ Because these objectives differ fundamentally in structure, no single fixed crit
 
 
 
-
+\####
 
 The ATS Trilemma:
 
@@ -100,7 +100,7 @@ Together, these form the ATS trilemma: any improvement along one dimension inevi
 
 
 
-
+\####
 
 What Makes MDFA Distinctive:
 
@@ -108,7 +108,7 @@ The MDFA integrates all three dimensions within a unified optimization framework
 
 
 
-
+\####
 
 Key properties of the approach include:
 
@@ -128,7 +128,7 @@ Transparency — unlike black-box methods, MDFA provides a direct window into th
 
 
 
+\####
 
-
-These qualities make the MDFA especially well-suited for settings where opacity is either prohibited — such as compliance-driven or regulatory environments — or simply undesirable, such as when a deeper understanding of the underlying forecasting logic is required.
+Interpretability: these qualities make the MDFA especially well-suited for settings where opacity is either prohibited — such as compliance-driven or regulatory environments — or simply undesirable, such as when a deeper understanding of the underlying forecasting logic is required.
 
