@@ -20,7 +20,7 @@ Background (references \& links): https://wiaidp.github.io/MDFA-tutorial/about
 
 
 
-Project Structure
+Project Structure:
 
 The project directory is organized into four sub-folders:
 
@@ -48,9 +48,9 @@ Getting started: Open the R project by clicking the project icon located in the 
 
 
 
-About the MDFA
+About the MDFA:
 
-The MDFA is a prediction framework built around two core ideas: recognizing the structural diversity of forecasting problems, and aligning the chosen methodology with the forecaster's specific research priorities.
+The MDFA is a prediction framework built around two core ideas i) recognizing the structural diversity of forecasting problems, and ii) aligning the chosen methodology with the forecaster's specific research priorities.
 
 
 
@@ -68,7 +68,7 @@ Prediction tasks can take many forms:
 
 
 
-\-Weighted combinations of future observations — as encountered in signal extraction, trend estimation, and seasonal adjustment
+\-General weighted combinations of future observations (involving possibly bi-infinite filters) — as encountered in signal extraction, trend estimation, and seasonal adjustment.
 
 
 
@@ -78,7 +78,7 @@ Because these objectives differ fundamentally in structure, no single fixed crit
 
 
 
-The ATS Trilemma
+The ATS Trilemma:
 
 Forecasting inherently involves three partly competing goals:
 
@@ -102,7 +102,7 @@ Together, these form the ATS trilemma: any improvement along one dimension inevi
 
 
 
-What Makes MDFA Distinctive
+What Makes MDFA Distinctive:
 
 The MDFA integrates all three dimensions within a unified optimization framework, tailoring the criterion to the specific structure of the prediction problem at hand while explicitly accounting for ATS trade-offs inherent in forecasting practice.
 
@@ -116,7 +116,7 @@ Key properties of the approach include:
 
 
 
-Generality — classical linear forecasting methods emerge as special cases, which can then be refined to reflect specific research priorities
+Generality — classical linear forecasting methods emerge as special cases, which can then be refined to reflect specific research priorities (customization)
 
 
 
