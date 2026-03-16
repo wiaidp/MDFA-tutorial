@@ -1,5 +1,7 @@
 The MDFA tutorial project on github is a collection of exercises and case studies introducing to and working with the MDFA (Multivariate Direct Filter Approach). 
 
+Author: Marc Wildi (www.marcwildi.com)
+
 https://github.com/wiaidp/MDFA-tutorial
 
 There are four sub folders in this project: Common functions, Literature, output, Tutorials.
