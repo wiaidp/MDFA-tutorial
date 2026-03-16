@@ -15,7 +15,7 @@ library(xts)
 #install.packages("devtools")
 library(devtools)
 # Load MDFA package from github
-#devtools::install_github("wiaidp/MDFA")
+devtools::install_github("wiaidp/MDFA")
 # MDFA package: EURUSD is now part of the data in the package
 library(MDFA)
 
