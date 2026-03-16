@@ -1,4 +1,11 @@
-The MDFA tutorial project on github is a collection of exercises and case studies introducing to and working with the MDFA (Multivariate Direct Filter Approach). Tutorials are numbered in increasing order of complexity.
+The MDFA tutorial project on github is a collection of exercises and case studies introducing to and working with the MDFA (Multivariate Direct Filter Approach). 
+
+https://github.com/wiaidp/MDFA-tutorial
+
+There are four sub folders in this project: Common functions, Literature, output, Tutorials.
+Tutorials are numbered in increasing order of complexity.
+
+Start the tutorial: click on the R project icon (in the main folder MDFA-tutorial) to open the project in R Studio. Load any of the tutorials in the Tutorials sub folder into R Studio. Run the code.
 
 The MDFA  is a prediction approach that emphasizes the structure of prediction problems and the importance of aligning forecasting methods with the forecaster’s research priorities. 
 
