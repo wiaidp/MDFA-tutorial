@@ -1,6 +1,3 @@
-# To do: link to optimal filter paper and to companion paper
-
-
 
 # Purpose of tutorial: 
 #   -In first tutorial we applied DFA to forecasting and we replicated classic SOTA time series approaches
@@ -69,7 +66,8 @@ a1<-0.1
 b1<-NULL
 plot_T<-T
 # This function computes the spectrum of the ARMA-process
-spec<-arma_spectrum_func(a1,b1,K,plot_T)$arma_spec
+par(mfrow=c(1,1))
+spec<-abs(arma_spectrum_func(a1,b1,K,plot_T)$arma_spec)
 # Fill into weight_func: target (first column) and explanatory (second column); both are identical for univariate problems
 weight_func<-cbind(spec,spec)
 colnames(weight_func)<-c("spectrum target","spectrum explanatory")
@@ -106,6 +104,7 @@ output_dfa<-filt_obj$yhat
 output_dfa[1:(L-1)]<-NA
 
 # The filtered series (red line in plot below) is smooth: high-frequency noise has been damped
+par(mfrow=c(1,1))
 ts.plot(output_ideal,col="blue",main="Output of ideal lowpass (blue) vs DFA (red)")
 lines(output_dfa,col="red")
 
@@ -117,6 +116,8 @@ enf<-500
 ts.plot(output_ideal[anf:enf],col="blue",main="Output of ideal lowpass (blue) vs DFA (red)")
 lines(output_dfa[anf:enf],col="red")
 abline(h=0)
+
+# Real-time (causal) DFA is slightly noisier (due to noise leakage) and slightly retarded (positive time-shift)
 
 
 #---------------------------------------------
@@ -147,6 +148,7 @@ L<-periodicity*2
 # Estimation based on MDFA-MSE wrapper
 mdfa_obj_dft_mse<-MDFA_mse(L,weight_func_dft,Lag,Gamma_dft)$mdfa_obj 
 
+# Spectrum (red) is much nopisier; filter coefficients are noisier too
 plot_estimate_func(mdfa_obj_dft_mse,weight_func_dft,Gamma_dft)
 
 
@@ -161,6 +163,7 @@ output_dft_dfa<-filt_dft_obj$yhat
 output_dft_dfa[1:(L-1)]<-NA
 
 # The filtered series (red line in plot below) is smooth: high-frequency noise has been damped
+par(mfrow=c(1,1))
 ts.plot(output_ideal,col="blue",main="Output of ideal lowpass (blue) vs best possible (red) and DFA-dft (green)")
 lines(output_dfa,col="red")
 lines(output_dft_dfa,col="green")
@@ -192,6 +195,9 @@ sqrt(mean((dat_mat_out_sample[,"ideal"]-dat_mat_out_sample[,"dft"])^2))))
 rownames(mat_mse_result)<-c("in sample","out sample")
 colnames(mat_mse_result)<-c("Theoretically best (true model)","DFA based on dft")
 
+# DFA outperforms in-sample (overfitting)
+# True model is best possible out-of-sample
+# Loss in efficiency of DFA out-of-sample is modest
 mat_mse_result
 
 #----------------------------------------------------------------------------------
@@ -294,7 +300,7 @@ sqrt(mean(mse_true)/mean(mse_dft))
 
 # Results: 
 #   -for L=2*periodicity and in_sample=300, the ratio is typically around 97%: in the mean the non-parametric DFA performs as well (by all practical means) as the best possible forecast approach
-#   -for L=2*periodicity and in_sample=100, the ratio is typically around 89%: in the mean the non-parametric DFA performs nearly as well as the best possible forecast approach
+#   -for L=2*periodicity and in_sample=100, the ratio is typically around 89%: in the mean the non-parametric DFA performs close to the best possible forecast approach (despite massive overfitting)
 #     -Note that L=2*periodicity is fine for damping all components with durations shorter/equal periodicity
 #     -But fitting L=2*periodicity=20 parameters for a time series of length in_sample=100 is 
 #       not extremely smart (overfitting). See tutorial on regularization...
