@@ -8,7 +8,7 @@ The MDFA Tutorial is a collection of exercises and case studies designed to intr
 
 
 
-Author: Marc Wildi — marcwildi.com
+Author: Marc Wildi — https://marcwildi.com
 
 
 
