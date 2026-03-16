@@ -1,5 +1,3 @@
-
-
 MDFA Tutorial — GitHub Project
 
 The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA (Multivariate Direct Filter Approach).
@@ -130,5 +128,5 @@ Transparency — unlike black-box methods, MDFA provides a direct window into th
 
 \####
 
-Interpretability: these qualities make the MDFA especially well-suited for settings where opacity is either prohibited — such as compliance-driven or regulatory environments — or simply undesirable, such as when a deeper understanding of the underlying forecasting logic is required.
+These qualities make the MDFA especially well-suited for settings where opacity is either prohibited — such as compliance-driven or regulatory environments — or simply undesirable, such as when a deeper understanding of the underlying forecasting logic is required.
 
