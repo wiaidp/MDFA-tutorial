@@ -1,14 +1,20 @@
-My Name is Marc Wildi. I'm a Profesor of Econometrics at the Zurich University of Applied Sciences. My main research interests are forecasting and signal extraction. I have developed a series of novel forecast approaches for addressing real-world prediction Problems and for mapping various partially conflicting research priorities into the forecast optiomization criterion: MDFA, M-SSA, Look Ahead DFP and PCS.
+My Name is Marc Wildi. I'm a Profesor of Econometrics at the Zurich University of Applied Sciences. My main research interests are forecasting and signal extraction. I have developed a series of novel forecast approaches for addressing real-world prediction Problems and for mapping various partially conflicting research priorities into the forecast optimization criterion: 
 
 
 
+\-MDFA (started in 2005): this repository
+
+\-M-SSA (started in 2020): on a separate GitHub repository
+
+\-Look Ahead DFP and PCS (started in 2024): on a separate GitHub repository
 
 
-MDFA-tutorial Research: MDFA principles are described in the following references 
+
+Research: MDFA principles are described in the following references
 
 
 
-I) Book: 
+I) Book:
 
 
 
@@ -35,6 +41,12 @@ II) Articles:
 
 
 \-Wildi M. and McElroy T. (2020). The Multivariate Linear Prediction Problem: Model-Based and Direct Filtering Solutions. Econometrics and Statistics. Volume 14.
+
+
+
+\-Quast J. and van Norden S. and Wildi M. (2026). Credit Cycles and Credit Crises: Some Measurement Issues and Implications. Working paper submitted to the 2026 SNB Research Conference (Oct.2-3 2026).
+
+
 
 
 
