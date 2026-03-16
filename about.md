@@ -1,5 +1,3 @@
-
-
 About Me
 
 
@@ -91,4 +89,6 @@ Quast, J., van Norden, S. \& Wildi, M. (2026). Credit cycles and credit crises: 
 
 
 Working paper versions of the above articles can be found in the Literature folder of the MDFA-tutorial project.
+
+
 
