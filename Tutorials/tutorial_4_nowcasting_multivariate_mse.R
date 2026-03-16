@@ -1,8 +1,6 @@
-# To do: link to optimal filter paper, to multivariate filter paper and to companion paper
-
 
 # Purpose of tutorial: 
-# Illustrate multivaraite designs: we rely on an artificial bivariate leading-indicator design
+# Illustrate multivariate designs: we rely on an artificial bivariate leading-indicator design
 # Compare (MSE-, in-sample and out-sample) performances of univariate DFA and bivariate design
 # Explore overfitting issues
 # Analyze pertinence of bivariate approach under multiple scenarios (data generating process, noise of indicator, filter-lengths, sample-lengths,... )
