@@ -69,8 +69,8 @@ set.seed(1)
 x_long<-arima.sim(list(ar=a1),n=lenh+1)
 set.seed(2)
 # Generate a leading indicator as second explanatory variable: leading indicator is x_long+scale_idiosyncratic*noise shifted
-#   one time point in the future
-# Scaling of the idiosyncratic noise
+#   one time point (to lead)
+# Scaling of the idiosyncratic noise: larger scale renders the leading indicator noisier
 scale_idiosyncratic<-.4
 if (abs(scale_idiosyncratic)==0)
   print("Design is not uniquely specified since both explanatory series are identical (up to a shift)")
@@ -79,15 +79,16 @@ indicator<-x_long+sqrt(var(x_long))*scale_idiosyncratic*eps
 # Data: first column=target, second column=x, third column=shifted (leading) indicator
 data_matrix<-na.exclude(cbind(x_long[1:(lenh)],x_long[1:lenh],c(indicator[2:(lenh+1)])))
 dimnames(data_matrix)[[2]]<-c("target","x","leading indicator")
+head(data_matrix)
 # Length of ideal lowpass (M is the half-length: effective length is 2*M-1 since filter is symmetric)
 M<-100
 # Extract in-sample span from the long sample: the first M observations are lost for initialization of ideal filter
 #   If we want to compare in-sample time-domain and in-sample frequency domain MSEs then we need to skip the first M observations
 data_matrix_in_sample<-data_matrix[M:(M+len),]
-# One can see that the second explanatory (third column) leads the target data (but it is noisy)
+# One can see (or guess) that the second explanatory (third column) leads the target data (but it is noisy)
 tail(round(data_matrix_in_sample,4))
 
-# Specify target (as used in book)
+# Specify target 
 periodicity<-6
 cutoff<-pi/periodicity
 # Ideal filter: used for evaluating time-domain MSE
@@ -100,7 +101,10 @@ y<-ideal_filter_func(periodicity,M,x_long)$y[1:lenh]
 # One can use either the function per
 weight_func_bivariate<-cbind(per(data_matrix_in_sample[,1],T)$DFT,per(data_matrix_in_sample[,2],T)$DFT,per(data_matrix_in_sample[,3],T)$DFT)
 # Or one can use spec_comp (the latter is slightly more general than per)
-#   Here we can supply the full data matrix data_matrix_in_sample at once: spec_comp then returns the multivariate dft 
+#   Here we can supply the full data matrix (i.e., data_matrix_in_sample) at once: spec_comp then returns the multivariate dft 
+# Note that the spectrum here is complex-valued: M-DFA can handle complex valued numbers!
+#   Note that in a bivariate setting, the Argument of the complex number informs about the relative phase (of an explanatory vs. the target)
+#   Therefore one should not use absolute values (taking absolute values would destroy the relative phase information, i.e., the lead)
 weight_func_bivariate<-spec_comp(nrow(data_matrix_in_sample), data_matrix_in_sample, 0)$weight_func
 # Resolution of frequency-grid
 K<-nrow(weight_func_bivariate)-1
@@ -125,6 +129,7 @@ head(b__bivariate)
 # Filtering bivariate: used for computing time domain MSEs
 yhat_bivariate_leading_indicator<-filt_func(data_matrix[,2:ncol(data_matrix)],b__bivariate)$yhat
 
+#-------------------
 # Estimation univariate DFA: benchmark (we know from previous tutorial that this is a tough competitor)
 weight_func_univariate<-weight_func_bivariate[,1:2]
 mdfa_obj_univariate<-MDFA_mse(L,weight_func_univariate,Lag,Gamma)$mdfa_obj 
@@ -148,6 +153,9 @@ colnames(perf_mse)<-c("bivariate MDFA","DFA")
 rownames(perf_mse)<-c("Sample MSE out-of-sample (time domain)","Sample MSE in-sample (time domain)","Criterion values in-sample (frequency-domain)")
 
 # Second 'toggle breakpoint': analyze MSEs, in-sample and out-of-sample, time domain and frequency domain
+# 1. MDFA outperforms DFA out of sample
+# 2. MDFA more prone to overfitting (larger discrepancy between in- and out-of-sample)
+# 3. Frequency-domain MSE replicates (up to negligible finite sample error) in-sample MSE
 round(perf_mse,3)
 
 
@@ -156,30 +164,27 @@ par(mfrow=c(1,1))
 mplot<-mplot_all<-cbind(yhat_univariate,y,yhat_bivariate_leading_indicator)
 ymin<-min(mplot,na.rm=T)
 ymax<-max(mplot,na.rm=T)
-ts.plot(mplot[,1],main=paste("Out-of-sample MSE MDFA: ",ylab="",
-                            round(perf_mse[1],3),", DFA: ",round(perf_mse[2],3),sep=""),col="blue",
-        ylim=c(ymin,ymax))
+ts.plot(mplot[,1],main=paste("Out-of-sample MSE MDFA: ",ylab="",round(perf_mse[1],3),", DFA: ",round(perf_mse[2],3),sep=""),col="blue",ylim=c(ymin,ymax))
 lines(mplot[,2],col="red")
 lines(mplot[,3],col="green")
-mtext("DFA", side = 3, line = -2,at=len/2,col="blue")
-mtext("target", side = 3, line = -1,at=len/2,col="red")
-mtext("MDFA", side = 3, line = -3,at=len/2,col="green")
+mtext("DFA",  line = -2,at=len/2,col="blue")
+mtext("target",  line = -1,at=len/2,col="red")
+mtext("MDFA",  line = -3,at=len/2,col="green")
 
 # Third 'toggle breakpoint': analyze filtered series (smoothness, lead)
 #   Zoom into above plot
+# MDFA slightly faster (left shifted): the left-shift explains most of the efficiency gains over DFA
 anf<-300
 enf<-400
 mplot<-mplot_all[anf:enf,]
 ymin<-min(mplot,na.rm=T)
 ymax<-max(mplot,na.rm=T)
-ts.plot(mplot[,1],main=paste("Out-of-sample MSE MDFA: ",ylab="",
-                             round(perf_mse[1],3),", DFA: ",round(perf_mse[2],3),sep=""),col="blue",
-        ylim=c(ymin,ymax))
+ts.plot(mplot[,1],main=paste("Out-of-sample MSE MDFA: ",ylab="",round(perf_mse[1],3),", DFA: ",round(perf_mse[2],3),sep=""),col="blue",ylim=c(ymin,ymax))
 lines(mplot[,2],col="red")
 lines(mplot[,3],col="green")
-mtext("DFA", side = 3, line = -2,at=len/2,col="blue")
-mtext("target", side = 3, line = -1,at=len/2,col="red")
-mtext("MDFA", side = 3, line = -3,at=len/2,col="green")
+mtext("DFA",  line = -2,at=(enf-anf)/2,col="blue")
+mtext("target",  line = -1,at=(enf-anf)/2,col="red")
+mtext("MDFA",  line = -3,at=(enf-anf)/2,col="green")
 
 
 #--------------------------------------------------------------------------------
@@ -206,21 +211,21 @@ play_obj$perf_mse
 #  1. filter coefficients (toggle point 1 ):
 #   The coefficients applied to the first series look like an 'ordinary' (one-sided) lowpass
 #   The coefficients applied to the second series (leading indicator) assign most weight to last data point
-#     This is meaningful because last data-point looks into the future (leading)
-#     but since the series is noisy, the weight (coefficient) is not dominating
+#     This is meaningful because last data-point looks into the future (leading); the other data points of the leading indicator are `uninteresting' (they are noisier than x)
+#     But since the series is noisy, the weight (coefficient) is not dominating
 #  2. MSE performances (toggle point 2):
 #   -Both in-sample measures (row 2: time-domain; row 3: frequency-domain criterion value) are close as desired
 #     -A heavy mismatch is indicative of overfitting: the frequency-grid would not be dense enough (K/L too small, ill-conditioned)
 #   -Out-of-sample performances of both filters are worse (overfitting)
-#   -Bivariate filter (first column) outperforms univariate (sedond column) in-sample as well as out-of-sample
+#   -Bivariate filter (first column) outperforms univariate (second column) in-sample as well as out-of-sample
 #     -This last result is expected at least in-sample; however, out-of-sample outperformance is less trivial because
 #      of increased overfitting by the bivariate design (requiring 2*L degrees of freedom)
 #  3. Plot of filter outputs (toggle point 3):
 #   -The output of the bivariate filter is generally anticipating turning-points, as expected
 #   -Both outputs (of one-sided filters) are slightly delayed with respect to target (though sometimes the one-sided filters seem to anticipate target)
-#     -This is because the data is smooth already (strong autocorrelation) so that the filtering-task is not too difficult
+#     -This is because the data is already smooth (strong autocorrelation: large a1) so that the filtering-task is not excessively difficult
 #--------------------------------------------------------------------------------
-# Example 2: same as above but we make the filtering task more difficult by specifying a 'close to white' process
+# Example 2: same as above but we make the filtering task more challenging by specifying a 'close to white' process
 # Almost white noise (close to fitting an ARMA-model to log-returns of EURUSD)
 a1<-0.08
 # Noisy but not too much so
@@ -245,14 +250,14 @@ play_obj$perf_mse
 #   -Both in-sample measures (row 2: time-domain; row 3: frequency-domain criterion value) are tightly matched, as desired
 #     -A heavy mismatch is indicative of overfitting: the frequency-grid would not be dense enough (K/L too small, ill-conditioned)
 #   -Out-of-sample performances of both filters are worse (overfitting) but less so (proportionally) than in example 1
-#     Heavier smoothing mitigates (a bit) overfitting
+#     Heavier smoothing mitigates  overfitting, to some extent (the more difficult the problem, the less overfitting)
 #   -Efficiency gains by bivariate design are commensurate with example 1
 #  3. Plot of filter outputs (toggle point 3):
 #   -Filtered series of one-sided designs are less smooth than in example 1 (input data is much noisier) and slightly more delayed (due to heavier smoothing)
 #   -bivariate filter generally leads univariate design by one time unit, as desired
 
 #--------------------------------------------------------------------------------
-# Example 3: same as example 2 (noisy data) but we make the leading indicator very noisy: thus we expect the univariate DFA to work as well as bivariate MDFA
+# Example 3: same as example 2 (noisy data) but we make the leading indicator very noisy: thus we expect the univariate DFA to work as well as bivariate MDFA (or better, due to overfitting)
 # Almost white noise (close to fitting an ARMA-model to log-returns of EURUSD)
 a1<-0.08
 # Very noisy leading indicator
@@ -304,13 +309,13 @@ play_obj$perf_mse
 #   -Remarkably close to results in example 2
 #  2. MSE performances (toggle point 2):
 #   -In-sample measures (row 2: time-domain; row 3: frequency-domain criterion value) differ: 
-#     -the criteria values (third row) are too small because both filters overfit the coarse freqeuncy-grid (only 50 frequencies available)
-#     -the bivariate filter (first column) 'overfits' more hevaily, as expected
+#     -the criteria values (third row) are too small because both filters overfit the coarse frequency-grid (only 50 frequencies available)
+#     -the bivariate filter (first column) 'overfits' more heavily, as expected
 #   -Out-of-sample performances of both filters are worse (overfitting) than in example 2 
-#     -However, a comparison of out-of-sample MSEs (example 2 and here) reveals pretty similar performances: which is rather unexpected but welcome
-#     -Efficiency gains of the bivariate filter are similar to example 2 above which is, once again, rather unexpected but welcome
+#     -However, a comparison of out-of-sample MSEs (example 2 and here) reveals pretty similar performances: surprising and nice
+#     -Efficiency gains of the bivariate filter are similar to example 2 above which is, again, surprising and nice
 #  3. Plot of filter outputs (toggle point 3):
-#   -The bivariate design is faster out-of-sample, es desired (but not necessarily as expected given that we estimate 24 coefficients on a sample of length 100)
+#   -The bivariate design is faster out-of-sample, es desired (surprising given that we estimate 24 coefficients on a sample of length 100)
 
 #--------------------------------------------------------------------------------
 # Example 5: same as example 2 but 'extreme' overfitting: 2*L/len=0.5 i.e. the bivariate design fits 50 coefficients to 100 data-points 
@@ -337,12 +342,12 @@ yhat_mat_overfitting<-play_obj$mplot_all
 #  2. MSE performances (toggle point 2):
 #   -Out-of-sample performances of bivariate still a smidge better than univariate 
 #  3. Plot of filter outputs (toggle point 3):
-#   -The bivariate design is still faster out-of-sample, es desired (but not necessarily as expected given that we estimate 50 coefficients on a sample of length 100)
+#   -The bivariate design is still faster out-of-sample, es desired (even more surprising given that we estimate 50 coefficients on a sample of length 100)
 
 #--------------------------------------------------------------------------------
 # Example 6: to be contrasted with example 5 above
-#   As example 5 (or 2) but we use a very long sample in order to reveal 'asymptotic' behaviour
-#   Expectation: for each filter all MSE-numbers should be tightly matched
+#   As example 5 (or 2) but we use a very long sample in order to reveal 'asymptotics' 
+#   Expectation: for each filter all MSE-numbers (frequency-domain and time-domain, in-sample and out-of-sample) should be tightly matched
 
 # Almost white noise (close to fitting an ARMA-model to log-returns of EURUSD)
 a1<-0.08
@@ -367,7 +372,7 @@ play_obj$perf_mse
 #   -as expected
 
 #--------------------------------------------------------------------------------
-# Example 7: same as example 6 (asymptotics) above but we illustrate that longer filter lengths do not improve performances much asymptotically
+# Example 7: same as example 6 (asymptotics) above but we illustrate that longer filter lengths do not improve performances substantially (asymptotically)
 #   As a consequence our rule of selecting L<-2*periodicity is OK in particular in cases where data is sparse and/or the generating-process is non-stationary (changing rapidly over time)
 
 # Almost white noise (close to fitting an ARMA-model to log-returns of EURUSD)
@@ -389,6 +394,7 @@ yhat_mat_asymptotic<-play_obj$mplot_all
 
 # To conclude we here compare the filter outputs of the 'massively overfitted' MDFA (example 5 above) and of the 
 #   best possible 'asymptotic'  MDFA and DFA (very large in-sample span, large L)
+#   -The `massively overfitted' M-DFA (red) retains speed (left shift). But its swings (peaks and dips) are too large in magnitude
 anf<-(nrow(yhat_mat_asymptotic)-100)
 enf<-nrow(yhat_mat_asymptotic)
 mplot<-cbind(yhat_mat_asymptotic[,3],yhat_mat_overfitting[,3],yhat_mat_asymptotic[,1])[anf:enf,]

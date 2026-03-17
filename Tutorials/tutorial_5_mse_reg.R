@@ -1,13 +1,11 @@
-# To do: link to book
-
 
 # Purpose of tutorial: tackle overfitting by imposing shrinkage of the parameter space towards 'universally' meaningful subspace
 #   -Customization will be tackled in separate tutorials
 # 1. Show that generalized function replicates previous (unconstrained) MSE design(s) in the absence of regularization (i.e. when all regularization weights vanish)
 # 2. Introduce regularization troika: effect on filter coefficients (universally meaningful shrinkage)
-#     -Illustrate decay
-#     -Illustrate smoothness
-#     -Illustrate cross
+#     -Illustrate longitudinal decay
+#     -Illustrate longitudinal smoothness
+#     -Illustrate cross similarity
 # 3. Compare unconstrained and constrained designs, in-sample and (more importantly) out-of-sample
 # 4. Advanced regularization
 #     -Derive the effective degrees of freedom (edof) of a regularized design
@@ -46,7 +44,7 @@ source("Common functions/tic_simulation_experiment.r")
 
 
 #-----------------------------------------------------------------------------------------------
-# Data: FX 
+# Data: FX series  EURUSD   EURJPY   GBPJPY    GBPUSD   USDJPY     EURGBP
 
 data_from_IB<-T
 hour_of_day<-"16:00"
@@ -60,14 +58,18 @@ mydata<-data_load_obj$mydata
 
 FX_mat<-data_load_obj$xts_data_mat[,i_series_vec]
 log_FX_mat<-log(FX_mat)
-
+# Six FX series, log-transformed
+head(log_FX_mat)
 colnames(log_FX_mat)
+# Plot
+ts.plot(log_FX_mat)
 
 plot_T<-T
 anf_plot<-"2000-10-01/"
 
 #-----------------------------------------------------------------
 # Example 0: illustration of regularization features (regularization troika)
+# Univariate design: DFA
 
 # Set all parameters to 'default' values
 
@@ -95,7 +97,7 @@ lambda_smooth<-lambda_cross<-0
 
 # Example 0.1 Decay regularization (single most important type of regularization)
 # Main idea: data in the remote past should be weighted less heavily or, stated otherwise, filter coefficients should decay towards zero with increasing lag
-# Two parameters: we here loke at first one (shape) 
+# Two parameters: we here look at first one (shape) 
 
 lambda_decay_1<-0.1*1:9
 lambda_decay_2<-0.5
@@ -115,6 +117,7 @@ mplot <- b_mat[,1+(0:(length(lambda_decay_1)-1)*(ncol(weight_func)-1))]
 ax <- Lag + 0 : (L-1)
 colo<-rainbow(ncol(mplot))
 insamp<-1.e+90
+# Larger lambda_decay_1 means a faster decay of the filter coefficients
 plot_title <- "Series 1"
 title_more<-paste("lambda_decay=(",lambda_decay_1,",",lambda_decay_2,")",sep="")
 mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
@@ -198,7 +201,7 @@ mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
 
 # Comments
 # For increasing lambda_smooth the coefficients appear 'smoother': reduction of degrees of freedom (less overfitting)
-# Smoothness (of the filter coefficients) is generally prefered (though not too smooth...)
+# Smoothness (of the filter coefficients) is generally preferred (up to a point)
 # Extreme smoothness means that coefficients are linear: the number of degrees of freedom drops from L to 2, see example 6.4 below
 # Smothness does not control for decay of coefficients with increasing lag
 # Strong smoothness can conflict with rapid/enforced decay
@@ -314,26 +317,27 @@ mdfa_reg_obj<-MDFA_reg(L,weight_func,Lag,Gamma,cutoff,lambda,eta,lambda_cross,la
 
 
 names(mdfa_reg_obj)
-par(mfrow=c(1,1))
+par(mfrow=c(2,2))
 # Filter coefficients: they decay slowly and their appearance is noisy
-ts.plot(mdfa_reg_obj$b)
+ts.plot(mdfa_reg_obj$b,main="Filter coefficients")
 # Amplitude: very noisy (overfitting)
-ts.plot(abs(mdfa_reg_obj$trffkt))
+ts.plot(abs(mdfa_reg_obj$trffkt),main="Amplitude")
 # Shift: noisy too
-ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K))
+ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K),main="Time-shift")
 
 
-# Same as above but using unconstrained MSE-wrapper
+# Same as above but using unconstrained MSE-wrapper (see previous tutorials)
 
 mdfa_obj<-MDFA_mse(L,weight_func,Lag,Gamma)$mdfa_obj 
 
 names(mdfa_obj)
+par(mfrow=c(2,2))
 # Filter coefficients
-ts.plot(mdfa_obj$b)
+ts.plot(mdfa_obj$b,main="Filter coefficients")
 # Amplitude
-ts.plot(abs(mdfa_obj$trffkt))
+ts.plot(abs(mdfa_obj$trffkt),main="Amplitude")
 # Shift
-ts.plot(Arg(mdfa_obj$trffkt)/((0:K)*pi/K))
+ts.plot(Arg(mdfa_obj$trffkt)/((0:K)*pi/K),main="Time-shift")
 
 # Comparison of filter coefficients: MSE vs. regularization with zero weights
 #  Both solutions should be identical i.e. the original MSE-solution is obtained when reg-weights vanish
@@ -347,7 +351,7 @@ cbind(mdfa_reg_obj$b,mdfa_obj$b)
 # Two parameters
 #   1. Strength of decay: lambda_decay[2] in [0,1]
 #   2. Rate of decay: lambda_decay[1] in [0,1]
-# Decay regularization has an effect on scaling: coefficients are atrracted towards zero
+# Decay regularization has an effect on scaling: coefficients are attracted towards zero
 #   -If turning-points are of interest, then this effect could be ignored (level-effect, zero-crossings are not affected)
 #   -Otherwise: scale back to original levels, see below
 #   -Or use constraints (i1<-T)
@@ -374,21 +378,23 @@ lambda_decay<-c(0.01,0.999)
 mdfa_reg_obj<-MDFA_reg(L,weight_func,Lag,Gamma,cutoff,lambda,eta,lambda_cross,lambda_decay,lambda_smooth)$mdfa_obj
 
 
-# Filter coefficients
-ts.plot(mdfa_reg_obj$b)
-# Amplitude
-ts.plot(abs(mdfa_reg_obj$trffkt))
-# Shift
-ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K))
+par(mfrow=c(2,2))
+# Filter coefficients: they decay slowly and their appearance is noisy
+ts.plot(mdfa_reg_obj$b,main=paste("Filter coefficients, lambda_decay=",lambda_decay,sep=""))
+# Amplitude: very noisy (overfitting)
+ts.plot(abs(mdfa_reg_obj$trffkt),main="Amplitude")
+# Shift: noisy too
+ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K),main="Time-shift")
 
 # Scale back
 scaler<-sum(mdfa_reg_obj$b)
 # Filter coefficients
-ts.plot(mdfa_reg_obj$b/scaler)
+par(mfrow=c(2,2))
+ts.plot(mdfa_reg_obj$b/scaler,main="Scaled filter coefficients")
 # Amplitude
-ts.plot(abs(mdfa_reg_obj$trffkt/scaler))
+ts.plot(abs(mdfa_reg_obj$trffkt/scaler),main="Amplitude scaled")
 # Shift
-ts.plot(Arg(mdfa_reg_obj$trffkt/scaler)/((0:K)*pi/K))
+ts.plot(Arg(mdfa_reg_obj$trffkt/scaler)/((0:K)*pi/K),main="Time-shift (is not affected by scaling)")
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Example 3
@@ -417,12 +423,13 @@ lambda_smooth<-1
 mdfa_reg_obj<-MDFA_reg(L,weight_func,Lag,Gamma,cutoff,lambda,eta,lambda_cross,lambda_decay,lambda_smooth)$mdfa_obj
 
 
-# Filter coefficients
-ts.plot(mdfa_reg_obj$b)
-# Amplitude
-ts.plot(abs(mdfa_reg_obj$trffkt))
-# Shift
-ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K))
+par(mfrow=c(2,2))
+# Filter coefficients: they decay slowly and their appearance is noisy
+ts.plot(mdfa_reg_obj$b,main=paste("Filter coefficients, lambda_smooth=",lambda_smooth,sep=""))
+# Amplitude: very noisy (overfitting)
+ts.plot(abs(mdfa_reg_obj$trffkt),main="Amplitude")
+# Shift: noisy too
+ts.plot(Arg(mdfa_reg_obj$trffkt)/((0:K)*pi/K),main="Time-shift")
 
 
 
@@ -477,9 +484,9 @@ lambda_cross<-1
 # MDFA_reg: wrapper for working with regularization
 mdfa_reg_obj<-MDFA_reg(L,weight_func_mat,Lag,Gamma,cutoff,lambda,eta,lambda_cross,lambda_decay,lambda_smooth)$mdfa_obj
 
-par(mfrow=c(1,1))
+par(mfrow=c(2,2))
 # Filter coefficients
-ts.plot(mdfa_reg_obj$b,col=rainbow(ncol(data)-1))
+ts.plot(mdfa_reg_obj$b,col=rainbow(ncol(data)-1),main=paste("Filter coefficients, lambda_cross=",lambda_cross,sep=""))
 for (i in 1:(ncol(data)-1))
   mtext(colnames(data)[i+1],side=3,line=-i,col=rainbow(ncol(data)-1)[i])
 # Amplitude
@@ -624,7 +631,7 @@ result_mat<-matrix(c(sqrt(mean(mse_true)/mean(mse_dft)),sqrt(mean(mse_true)/mean
 colnames(result_mat)<-c("Unconstrained","Regularized")
 result_mat
 # Results: 
-#   -Overfitting could be sucessively avoided by the regularized design
+#   -Overfitting could be successively avoided by the regularized design
 #   -Efficiency lies at 93% when compared to best possible design, assuming knowledge of true process (quite remarkable given the short estimation span)
 
 # Note that we stuffed the above code-lines into a more convenient function-call
@@ -639,17 +646,16 @@ tic_simulation_experiment_func(a1,b1,true_model_order,lambda_decay,lambda_smooth
 #   'optimal regularization' settings
 # -What is an 'optimal regularization' setting?
 #   1. The idealized purpose of regularization is to contain overfitting without affecting (too much...) flexibility
-#     -Ideally, an optimally regularized design is able to match all relevant features of a particular estimation problem 
+#     -Ideally, an optimally regularized design is able to match all relevant features of a particular estimation problem while retaining `simplicity' 
 #     -Ideally, an optimally regularized design performs as well out-of-sample as it does in-sample
-#   2. More practically (less idealized) we expect that hinting at an 'optimally regularized design' will affect 
-#       positively out-of-sample performances
+#   2. We expect that an 'optimally regularized design' should improve out-of-sample performances 
 #     -Ideally, the 'optimally regularized design' outperforms all other contenders out-of-sample
-# -We here propose a novel statistic (see book for formal background) which (in a way) generalizes classic information
+# -We here propose a novel statistic which (in a way) generalizes classic information criteria
 #   -We derive the effective degrees of freedom of a troika-regularized design (decay, smoothness and cross sectional similarity)
 #   -From this we can derive the effective dimension of the shrinkage space
 #   -From this we can derive the spurious decrease of the DFA-(optimization) criterion in the case of overparametrization (too richly parametrized filters)
 #   -From this we can design an 'information criterion' by compensating the spurious decrease (of the criterion) by 
-#     a 'penalty'-term which effectively penalizes too-richly parametrized designs
+#     a 'penalty'-term which effectively penalizes too-richly parameterized designs
 
 # Let's do so!
 #   Example 6 plays with the new edof statistic (effective degrees of freedom)
@@ -708,7 +714,7 @@ mdfa_reg_obj<-MDFA_reg(L,weight_func_mat,Lag,Gamma,cutoff,lambda,eta,lambda_cros
 troikaner<-T
 mdfa_reg_T_obj<-MDFA_reg(L,weight_func_mat,Lag,Gamma,cutoff,lambda,eta,lambda_cross,lambda_decay,lambda_smooth,troikaner)$mdfa_obj
 
-# Check: both filters are identical
+# Check: both filters are identical: troikaner==T does not affect estimation
 cbind(mdfa_reg_T_obj$b,mdfa_reg_obj$b)
 
 # But there is more output (statistics) available when troikaner==T
@@ -720,7 +726,7 @@ names(mdfa_reg_T_obj)
 # Example 6.2 working with the degrees of freedom
 
 
-# We estimated L*3 (trivariate filter) coefficients without regularization in the above example i.e. 20*3=60 
+# We estimated L*3  coefficients (trivariate filter) without regularization in the above example i.e. 20*3=60 
 mdfa_reg_T_obj$edof
 
 #-----------------------------
@@ -758,7 +764,7 @@ mdfa_reg_T_obj<-MDFA_reg(L,weight_func_mat,Lag,Gamma,cutoff,lambda,eta,lambda_cr
 # We estimate L*3 coefficients and impose super-strong smoothness 
 #   super strong smoothness means: coefficients are linear
 #   a linear function requires two degrees of freedom (slope/intercept)
-#   therefore we expect the dgrees of freedom to be 3*2=6
+#   therefore we expect the degrees of freedom to be 3*2=6
 round(mdfa_reg_T_obj$edof,0)
 
 
@@ -805,13 +811,13 @@ round(mdfa_reg_T_obj$edof,0)
 #   -This criterion generalizes the classic Akaike criterion AIC to the more complex regularized signal extraction problem 
 #   -It is not based on the idea of 'maximizing a likelihood' (as is AIC)
 #   -Instead it derives the dimension of the regularized shrinkage space from which the spurious decrease of the 
-#     (log of the) MSE-criterion can be obtained in the case of overparametrization (L too large)
+#     (log of the) MSE-criterion can be obtained in the case of overparameterization (L too large)
 #   -Compensating the spurious decrease of the (log of the) MSE-criterion by a penalty-term larger than this decrease then results in the new criterion
 
 # Ideally we expect that
 #   -Selecting lambda_decay, lambda_smooth, lambda_cross according to minimum tic should lead to best out-of-sample performances
 # Let's check that idealized expectation
-#   -The following code is the same as in example 5 above excpet that we set troikaner=T when calling the regularization wrapper in the loop
+#   -The following code is the same as in example 5 above except that we set troikaner=T when calling the regularization wrapper in the loop
 
 # Number of simulations
 anzsim<-100
@@ -859,7 +865,7 @@ tic_simulation_experiment_func(a1,b1,true_model_order,lambda_decay,lambda_smooth
 # We add smoothness regularization to first design
 lambda_smooth<-0.3
 #   -Degrees of freedom is around 7
-#   -The tic value is smaller than first design but out-of-sample performances are marginally worse (might be attributed to sampling error because we know formally that tic makes sense) 
+#   -The tic value is smaller than first design but out-of-sample performances are marginally worse (might be attributed to sampling error) 
 lambda_decay<-c(0.6,0.8)
 tic_simulation_experiment_func(a1,b1,true_model_order,lambda_decay,lambda_smooth,anzsim)
 
@@ -902,8 +908,7 @@ tic_simulation_experiment_func(a1,b1,true_model_order,lambda_decay,lambda_smooth
 #       too 'touchy' with respect to departures from the optimum
 #     -Strategy: find a regularization setting with a fairly small tic (which is automatically greeted with fairly small degrees of freedom)
 #       imposing an appealing mix of decay, smoothness and cross-sectional (the latter only for multivariate designs) regularization
-#     -Forget the delusional concept of 'the single best outcome'
-#   -Unnecessarily strong regularization may lead to unflexible designs with poorer out-of-sample performances
+#   -Unnecessarily strong regularization may lead to inflexible designs with poorer out-of-sample performances
 
 #------------------
 # Example 7.2: Same as above examples 7.1.1-7.1.8 but use a 'nearly white' process (typical for log-returns of financial data)
@@ -915,28 +920,28 @@ true_model_order<-c(1,0,0)
 
 #-----------------------------------------------------------------------------------------------------------
 # What did we learn
-#   -Overfitting can seriously affect out-of-sample MSE-performances
-#   -Multivariate designs suffer more heavily from overfitting
-#   -The regularization troika based on decay, smoothness and similarity, imposes universally desirable filter-features
-#     -Irrespective of the particular application, all three requirements are 'desirable'
-#     -Therefore we may impose any combination of them in any kind of application (without fearing some 'loss of structural integrity' of the resulting filter)
+#   -Overfitting can negatively impact out-of-sample MSE-performances
+#   -For fixed L, multivariate designs are more prone to overfitting
+#   -The regularization troika based on decay, smoothness and similarity, imposes (universally) desirable filter-features
+#     -Irrespective of the particular application, all three requirements are 'desirable' (up to a point)
+#     -Therefore we may impose any combination of them in any kind of application (a good mix mitigates misspecification and weakens overfitting)
 #   -However, we don't know a priori how to weight the terms of the troika: 
 #     -the strength (dimension of shrinkage space) is dependent on the structure of the particular estimation problem at hand
 #   -We proposed a novel statistic, the troika information criterion (tic) which enables to find suitable regularization
 #     weighting 
 #     -Suitable here means: the tic correlates strongly with out-of-sample MSE-performances: smaller tic generally leads to smaller MSE 
 #   -In general the effective degrees of freedom (edof) of such optimized designs are markedly smaller than the original unconstrained designs
-#     -The Troika is flexible enough (universal) to account for the relevant features of an estimation problem
-#       with humbly-sized degrees of freedom
+#     -The Troika is flexible enough to account for the relevant features of an estimation problem
+#       with `optimally parsimonious' designs
 
 
 # Other/additional issues
 #   1.The proposed regularization features are effective in terms of MSE- (level) performances, mainly
-#     -Alternative applications for which MSE (or level) is not of utmost priority are not adressed explicitly 
+#     -Alternative applications for which MSE (or level) is not of utmost priority are not addressed explicitly 
 #     -Example: trading or recession-calling
 #       -In trading the analyst may decide to be positioned (long/short) depending on the sign of the filter output (positive/negative)
 #       -Considering the filter output in terms of 'sign' (instead of level) is a scale-invariant application
-#       -On the other hand, zero-shrinkage (by imposing a large decay-regularization for example) adresses 
+#       -On the other hand, zero-shrinkage (by imposing a large decay-regularization for example) addresses 
 #         MSE/level issues, explicitly (shrinking towards zero improves MSE under noisy conditions)
 #       -Therefore zero-shrinkage cannot be claimed to address explicitly scale-invariant filter applications  
 #     -Though indirectly most applications will still be addressed, at least indirectly/partially, because 
