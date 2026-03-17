@@ -1,27 +1,65 @@
 
-# Purpose of tutorial: illustrate (M)DFA user-interface, understand and interpret MSE solutions, understand overfitting
+# ════════════════════════════════════════════════════════════════════
+# TUTORIAL 1: (M)DFA USER INTERFACE, MSE SOLUTIONS AND OVERFITTING
+# ════════════════════════════════════════════════════════════════════
 
-# In previous forecasting-tutorial we emphasized a particular target: Gamma was an (anticipative: Lag<0) allpass filter
-#   -Here we propose generic targets, including lowpass, bandpass, highpass, Hodrick-Prescott (see tutorial 9), arbitrary...
-# We also propose different spectra and illustrate the main ideas behind the MSE optimization criterion 
-# We interpret important characteristics of the MSE-solution: amplitude and time-shift functions
-# We provide a thorough understanding of (the mechanism of) overfitting in the DFA-framework
-# We learn how to control the outcome of the optimization (the one-sided DFA-filter) by playing with 
-#   the flexible user-interface of DFA
-# A link to trading is provided by identifying maxima and minima (turning-points) of time series
-#   -tactical (short-term) and strategic (mid and long-term) positioning can be implemented by means of a single parameter (periodicity)
+# ── PURPOSE ───────────────────────────────────────────────────────
+# This tutorial pursues three main objectives:
+#   • Familiarize the user with the (M)DFA interface
+#   • Develop intuition for and interpretation of MSE solutions
+#   • Build a thorough understanding of overfitting in the DFA framework
 
+# ── SCOPE AND EXTENSIONS RELATIVE TO PREVIOUS TUTORIAL ───────────
+# The previous forecasting tutorial 0 focused on a specific target:
+# an anticipative (Lag < 0) allpass filter.
+# This tutorial broadens the scope in several directions:
+#
+#   • Generic filter targets
+#       → Lowpass, bandpass, highpass, Hodrick-Prescott
+#         (see Tutorial 9), and arbitrary user-defined targets
+#
+#   • Multiple spectral estimation approaches
+#       → Different spectra are proposed and compared
+#
+#   • Interpretation of MSE solutions
+#       → Key characteristics examined:
+#         amplitude function and time-shift function
+#
+#   • Overfitting
+#       → The mechanism of overfitting is examined in depth
+#         within the DFA framework
+#
+#   • Flexible user control
+#       → The DFA user interface is explored to understand how
+#         the optimization outcome (the one-sided DFA filter)
+#         can be shaped and steered
+#
+#   • Link to trading
+#       → Identification of turning points (local maxima and minima)
+#         provides a natural bridge to trading applications:
+#         → Tactical (short-term) and strategic (medium- to long-term)
+#           positioning can be implemented via a single parameter
+#           (periodicity)
 
-# Design in this tutorial: 
-#   -For illustration purposes we restrict our analysis to univariate examples
-#   -MSE-criterion (no customization)
-#   -Unconstrained filters (no regularization)
-#   -Customization and regularization will be addressed in separate tutorials
+# ── TUTORIAL DESIGN ───────────────────────────────────────────────
+# To keep the focus on core concepts, this tutorial is deliberately
+# restricted to:
+#   • Univariate examples          (no multivariate extensions)
+#   • MSE criterion                (no customization)
+#   • Unconstrained filters        (no regularization)
+#
+# Note: customization and regularization are addressed in
+# dedicated subsequent tutorials.
 
-# Functions and parameters: throughout this tutorial we rely on the same function MDFA_mse as used previously and we learn how to (better) understand 
-# its parameters in a univariate signal extraction (nowcasting) framework. In particular, this tutorial will emphasize Gamma (arbitrary target) and 
-# weight_func (spectrum)
-
+# ── FUNCTIONS AND PARAMETERS ──────────────────────────────────────
+# As in the previous tutorial, all examples rely on MDFA_mse.
+# The focus here shifts to a deeper understanding of its parameters
+# in a univariate signal extraction (nowcasting) framework.
+#
+# Parameters of particular emphasis in this tutorial:
+#   • Gamma        → arbitrary filter target specification
+#   • weight_func  → spectral estimate
+# ─────────────────────────────────────────────────────────────────
 
 
 # Start from scratch

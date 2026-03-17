@@ -1,24 +1,132 @@
-# This tutorial consists of 6 introductory exercises
+# ════════════════════════════════════════════════════════════════════
+# TUTORIAL 0: INTRODUCTION TO MDFA
+# (Multivariate Direct Filter Approach)
+# ════════════════════════════════════════════════════════════════════
 
-# Purpose of tutorial: 
-# DFA can replicate classic (MSE) one- and multi-step ahead forecasting by 
-#   -specifying a corresponding target (allpass) and forecast horizon (Lag) 
-#   -specifying a corresponding spectral estimate
-# We illustrate, in particular, how classic ARIMA-based forecasting can be replicated in the DFA framework. 
-#   -Once rooted into well-known territory, we can deploy the additional flexibility of DFA in the following tutorials 
-# At the end we also illustrate pertinence of a non-parametric DFA approach based on the discrete fourier transform (dft) 
-#     as well as Burg's max-entropy spectral estimate
-#   -We show that 
-#     1. Out-of-sample forecast performances of DFA based on dft are nearly as good as the universally best approach (which assumes knowledge of the true data-generating process)
-#     2. Performances of DFA based on dft and of DFA based on max-entropy spectrum are indistinguishable  
-#   -These results suggest pertinence of the non-parametric approach --DFA based on dft-- in a wide range of applications 
-#     and in particular when models are likely to be misspecified (which is always the case for real-world data)
+# ── THEORETICAL FOUNDATIONS ───────────────────────────────────────
+# The theoretical foundations and principles underlying MDFA are
+# documented in the following references.
 
+# ── I. BOOKS ──────────────────────────────────────────────────────
+#
+#   Wildi, M. (2005)
+#     Signal Extraction: Efficient Estimation, 'Unit Root'-Tests
+#     and Early Detection of Turning Points.
+#     Lecture Notes in Economics and Mathematical Systems, Springer.
+#     https://doi.org/10.1007/b138291
+#
+#   Wildi, M. & McElroy, T. (in preparation)
+#     A new book on MDFA is currently in preparation.
 
-# Functions and parameters: throughout this tutorial we rely on the function MDFA_mse which is the MSE-(mean-square error norm) wrapper to the generic MDFA estimation routine. 
-# By omitting many additional features (to be discussed in later tutorials) this wrapper allows to focus on the relevant problem structure.
-# We here learn handling of the parameters in the call to MDFA_mse by replicating a classic one-step ahead forecast framework. We are then able 
-# to replicate classic time series approaches.
+# ── II. ARTICLES ──────────────────────────────────────────────────
+#
+#   Wildi, M. & McElroy, T. (2019)
+#     The trilemma between accuracy, timeliness and smoothness in
+#     real-time signal extraction.
+#     International Journal of Forecasting, Vol. 35, Issue 3.
+#
+#   Wildi, M. & McElroy, T. (2016)
+#     Optimal real-time filters for linear prediction problems.
+#     Journal of Time Series Econometrics, Vol. 8, Issue 2.
+#
+#   Wildi, M. & McElroy, T. (2020)
+#     The multivariate linear prediction problem: Model-based and
+#     direct filtering solutions.
+#     Econometrics and Statistics, Vol. 14.
+#
+#   Quast, J., van Norden, S. & Wildi, M. (2026)
+#     Credit cycles and credit crises: Some measurement issues
+#     and implications.
+#     Working paper submitted to the 2026 SNB Research Conference
+#     (October 2–3, 2026).
+
+# ── MDFA, M-SSA AND DFP/PCS PREDICTORS: A COMPARATIVE OVERVIEW ─────────────
+#
+# Historical context:
+#   • DFA/MDFA   → origins in 2002 research and culminates in new MDFA book coauthored with Tucker McElroy (MDFA tutorials repository on github)
+#   • M-SSA      → developed from early 2020 (M-SSA tutorials repository on github)
+#   • DFP/PCS    → developed from mid 2020 (not yet on github)
+#
+# Common ground:
+#   All three prediction frameworks are organized around the forecast trilemma,
+#   jointly addressing Accuracy, Timeliness, and Smoothness —
+#   albeit with practically relevant differences in formulation
+#   and interpretation.
+#
+# Key distinctions:
+#
+#   • Domain
+#       → MDFA operates in the frequency domain
+#       → M-SSA and DFP/PCS are formulated in the time domain
+#
+#   • Trilemma decomposition in MDFA
+#       → MSE is decomposed into amplitude and phase contributions,
+#         which define the smoothness and timeliness terms
+#         respectively — see cited literature for details
+#
+#   • Smoothness in M-SSA
+#       → Measured as the mean duration between consecutive
+#         sign changes of a zero-mean predictor (holding-time)
+#       → Yields more direct and intuitive interpretation
+#         than the MDFA amplitude-based formulation
+#
+#   • Timeliness in DFP/PCS
+#       → Quantified via the effective time-shift of the predictor
+#         (rather than phase in the frequency domain)
+#       → Yields more direct and intuitive interpretation
+#         than the MDFA phase-based formulation
+# ════════════════════════════════════════════════════════════════════
+# This introductory tutorial to the MDFA consists of 6 exercises covering the
+# foundations of MDFA.
+
+# ── PURPOSE ───────────────────────────────────────────────────────
+# The Direct Filter Approach (DFA) can replicate classical MSE-based
+# one- and multi-step ahead forecasting by:
+#
+#   • Specifying a corresponding target (allpass filter) and
+#     forecast horizon (Lag)
+#   • Specifying a corresponding spectral estimate
+#
+# A central goal of this tutorial is to show how classical
+# (e.g., ARIMA-based) forecasting can be fully replicated within the DFA
+# framework.
+#   → Once grounded in this familiar territory, subsequent tutorials
+#     deploy the additional flexibility of DFA beyond classical MSE
+
+# ── NON-PARAMETRIC DFA ────────────────────────────────────────────
+# The tutorial concludes by illustrating the relevance of a
+# non-parametric DFA approach, based on:
+#   • The Discrete Fourier Transform (DFT)
+#   • Burg's maximum-entropy spectral estimate
+#
+# Key findings:
+#
+#   1. Out-of-sample forecast performance of DFT-based DFA is
+#      nearly indistinguishable from the universally best approach
+#      (which assumes full knowledge of the true data-generating
+#      process)
+#
+#   2. Forecast performances of DFT-based DFA and max-entropy-based
+#      DFA are mutually indistinguishable
+#
+# Implication:
+#   → These results support the use of the non-parametric
+#     (DFT-based) DFA approach across a wide range of applications —
+#     especially when model misspecification is a concern,
+#     as is invariably the case with real-world data
+
+# ── FUNCTIONS AND PARAMETERS ──────────────────────────────────────
+# Throughout this tutorial, we rely on the function MDFA_mse:
+#   → The MSE-norm wrapper to the generic MDFA estimation routine
+#
+# By omitting advanced features (covered in later tutorials),
+# this wrapper allows the focus to remain on the core problem
+# structure.
+#
+# Specifically, we learn to handle the parameters of MDFA_mse
+# by replicating a classical one-step ahead forecast framework,
+# establishing a direct bridge to standard time series approaches.
+# ─────────────────────────────────────────────────────────────────
 
 
 rm(list=ls())
