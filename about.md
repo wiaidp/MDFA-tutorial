@@ -88,7 +88,5 @@ Quast, J., van Norden, S. \& Wildi, M. (2026). Credit cycles and credit crises: 
 
 
 
-Working paper versions of the above articles can be found in the Literature folder of the MDFA-tutorial project.
-
-
+Working paper versions of the above articles can be found in the Literature folder of the MDFA tutorial project. The most recent cited work (2026) analyses DFA in the context of financial crisis prediction, comparing filter characteristics and classification performance against the HP (lambda=400'000), Hamilton (h=20, p=4), and simple difference filters (1-B^20). The DFA design relies on a white noise assumption (flat spectrum), which avoids data snooping, and is applied to differenced Credit-to-GDP data for a selection of approximately 50 countries.
 
