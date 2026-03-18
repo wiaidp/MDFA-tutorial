@@ -466,9 +466,9 @@ mat_mse_result
 # true_model_order <- c(1, 0, 0)
 
 # 3.4) Close to noise (typical for FX-log-returns)
-# a1 <- -0.08
-# b1 <- 0.0
-# true_model_order <- c(1, 0, 0)
+a1 <- -0.08
+b1 <- 0.0
+true_model_order <- c(1, 0, 0)
 
 # Add any other ARMA configurations as needed...
 
@@ -492,12 +492,8 @@ pb <- txtProgressBar(min = 1, max = anzsim, style = 3)
 # Simulation loop
 for (i in 1:anzsim) {
   # Generate a realization from the chosen ARMA specification
-  if (abs(a1) + abs(b1) > 0) {
-    x <- as.vector(arima.sim(n = len, list(ar = a1, ma = b1)))
-  } else {
-    x <- rnorm(len)
-  }
-  
+  x <- as.vector(arima.sim(n = len, list(ar = a1, ma = b1)))
+
   # In-sample window used for both model-based and DFT-based spectrum estimation
   x_insample <- x[1:in_sample]
   
@@ -553,236 +549,174 @@ ratio <- sqrt(mean(mse_true) / mean(mse_dft))
 
 ratio
 
+# =============================================================================
+# Results (Summary and Practical Takeaways)
+# -----------------------------------------------------------------------------
+# Key findings from the simulation study:
+#   - With L = 2 * periodicity and in_sample = 300:
+#       The RMSE ratio (DFA with nonparametric DFT spectrum vs. best possible DFA)
+#       is typically around 0.97 (i.e., ~97%). On average, the nonparametric DFA
+#       performs nearly as well as the best possible forecast approach under the
+#       assumed data-generating process.
+#
+#   - With L = 2 * periodicity and in_sample = 100:
+#       The RMSE ratio is typically around 0.89 (i.e., ~89%). The nonparametric
+#       DFA remains close to the best possible forecast, albeit with a larger
+#       relative efficiency loss due to stronger overfitting risk from the small
+#       in-sample size.
+#
+# Additional notes:
+#   - A filter length of L = 2 * periodicity effectively (but not perfectly) dampens all components
+#     with durations shorter than or equal to the target periodicity.
+#   - When in_sample is small (e.g., 100), fitting L = 2 * periodicity (≈ 20
+#     parameters in this setup) can lead to substantial overfitting. This is
+#     a classic bias-variance trade-off; regularization or model complexity
+#     control is recommended in such regimes.
+#
+# Practical takeaway (concise guidance for practitioners):
+#   - For real-time applications, a moderate filter length L around 2 * periodicity
+#     often offers a robust balance between bias (faithfulness to the target) and
+#     variance (overfitting risk), especially when the in-sample window is limited.
+#
+#   - With very short samples, avoid setting the cutoff (periodicity) too large:
+#       longer-period components are not observable in the data, which can lead to
+#       unreliable estimates and degraded out-of-sample performance.
+#
+#   - In short, prefer a modest L and a conservative cutoff when data are scarce to
+#     hedge against overfitting and ensure stable nowcasting in real time.
+# =============================================================================
 
 
+# =============================================================================
+# Example 4: DFA with Burg's Max-Entropy Spectral Estimate vs DFT-Based DFA
+# =============================================================================
+# Goal:
+# Compare two practical, data-driven spectral estimators within the DFA framework
+# for lowpass nowcasting (Lag = 0) using the same ARMA-driven data-generating
+# processes as in previous examples.
+#
+# Approaches:
+#  - DFA using Burg's Maximum Entropy spectral estimate (via an AR(L) model)
+#  - DFA using a nonparametric DFT-based spectrum (periodogram)
+#
+# Evaluation:
+#  - In-sample vs. out-of-sample MSE relative to the ideal two-sided lowpass
+#  - Simulation study across realizations to assess relative efficiency
+# Notes:
+#  - The lowpass target is defined by periodicity (as in previous examples)
+#  - The filter length L is shared between Burg-based and DFT-based DFAs
+#  - This script is designed to showcase a single ARMA configuration per run;
+#    you can loop over multiple configurations (a1, b1, and true_model_order)
+#    to extend the study.
+# =============================================================================
 
+# Example sub-cases (uncomment to run individually)
+# 4.1) MA(1)
+# a1 <- 0.
+# b1 <- 0.7
 
+# 4.2) ARMA with positive ACF
+# a1 <- 0.6
+# b1 <- 0.7
 
+# 4.3) AR with negative ACF
+# a1 <- -0.9
+# b1 <- 0
 
+# 4.4) Nearly noise (FX-like log-returns)
+a1 <- -0.08
+b1 <- 0
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#----------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------
-# Example 3: Same as previous exercise but we conduct a simulation study based on multiple 
-# realizations of an arma-process. This example corresponds to the simulation 
-# studies in the previous tutorial (forecasting) but Gamma is now a lowpass (not an allpass) 
-# and we emphasize nowcasting (Lag=0) 
-
-# Example 3.1: MA(1)
-a1<-0.
-b1<-0.7
-true_model_order<-c(0,0,1)
-# Example 3.2: ARMA with positive acf
-a1<-0.6
-b1<-0.7
-true_model_order<-c(1,0,1)
-# Example 3.3: AR with negative acf
-a1<--0.9
-b1<-0
-true_model_order<-c(1,0,0)
-# Example 3.4: close to noise (typical for log-returns of FX-data)
-a1<--0.08
-b1<-0.0
-true_model_order<-c(1,0,0)
-# Add any other processes...
-# We generate anzsim realizations of length len of the arma-process
+# Common simulation settings
 set.seed(1)
-len<-1000
-mse_true_arma<-mse_dfa<-NULL
-# Number of simulations
-anzsim<-500
-# Length of in-sample span
-in_sample<-300
-# Frequency grid for DFA based on true model
-K_true<-600
-# Lowpass target  
-periodicity<-10
-# Default (reasonable) filter length for nowcasting
-L<-2*periodicity
-# Nowcast
-Lag<-0
-# Length of ideal filter
-M<-100
-mse_true<-mse_dft<-NULL
+len <- 1000            # Series length per realization
+anzsim <- 500          # Number of realizations
+in_sample <- 300        # In-sample window for estimation
+K_burg <- 600           # Burg spectral grid size
+periodicity <- 10         # Target lowpass periodicity
+L <- 2 * periodicity        # Filter length (nowcasting window)
+Lag <- 0                    # Nowcasting
+M <- 100                    # Length for the ideal two-sided filter
+
+mse_burg <- mse_dft <- NULL
+
+# Progress bar to monitor simulation
 pb <- txtProgressBar(min = 1, max = anzsim, style = 3)
-# Loop through all simulations and collect out-of-sample forecast performances
-for (i in 1:anzsim)
-{
-  # Distinguish white noise  
-  if (abs(a1)+abs(b1)>0)
-  {
-    # Generate series  
-    x<-as.vector(arima.sim(n=len,list(ar=a1,ma=b1)))
-  } else
-  {
-    x<-rnorm(len)
+
+for (i in 1:anzsim) {
+  # 1) Generate ARMA process realization
+  if (abs(a1) + abs(b1) > 0) {
+    x <- as.vector(arima.sim(n = len, list(ar = a1, ma = b1)))
+  } else {
+    x <- rnorm(len)
   }
-  # Use in-sample span for model-estimation and for dft  
-  x_insample<-x[1:in_sample]
-  # True model: estimate model-parameters by relying on classic arima-function
-  arima_true_obj<-arima(x_insample,order=true_model_order,include.mean=F)
-  # Spectrum based on true model  
-  spec<-arma_spectrum_func(ifelse(!is.na(arima_true_obj$coef["ar1"]),arima_true_obj$coef["ar1"],0),ifelse(!is.na(arima_true_obj$coef["ma1"]),arima_true_obj$coef["ma1"],0),K_true,F)$arma_spec
-  weight_func<-cbind(spec,spec)
-  colnames(weight_func)<-c("spectrum target","spectrum explanatory")
-  weight_func_true<-weight_func
-  cutoff<-pi/periodicity
-  # target true model: frequnecy grid is not the same as for dft below i.e. K is different
-  Gamma_true<-(0:(K_true))<=K_true*cutoff/pi+1.e-9
-  mdfa_true_obj<-MDFA_mse(L,weight_func_true,Lag,Gamma_true)$mdfa_obj 
-  b_true<-mdfa_true_obj$b
-  # Use in-sample span for dft  
-  weight_func_dft<-cbind(per(x_insample,F)$DFT,per(x_insample,F)$DFT)
-  colnames(weight_func_dft)<-c("spectrum target","spectrum explanatory")
-  K_dft<-nrow(weight_func_dft)-1
-  Gamma_dft<-(0:(K_dft))<=K_dft*cutoff/pi+1.e-9
-  # Compute MSE-filter
-  mdfa_dft_obj<-MDFA_mse(L,weight_func_dft,Lag,Gamma_dft)$mdfa_obj 
-  b_dft<-mdfa_dft_obj$b
-  # Filter data
-  # 1. ideal filter  
-  id_obj<-ideal_filter_func(periodicity,M,x)
-  output_ideal<-id_obj$y
-  # 2. DFA true
-  filt_true_obj<-filt_func(x,b_true)
-  output_dfa_true<-filt_true_obj$yhat
-  # 3. DFA dft
-  filt_dft_obj<-filt_func(x,b_dft)
-  output_dfa_dft<-filt_dft_obj$yhat
-  # Mean-square out-of-sample filter error  
-  mse_true<-c(mse_true,mean((output_ideal-output_dfa_true)[(in_sample+1):len-M]^2,na.rm=T))
-  mse_dft<-c(mse_dft,mean((output_ideal-output_dfa_dft)[(in_sample+1):len-M]^2,na.rm=T))
+  
+  # 2) In-sample span for estimation
+  x_insample <- x[1:in_sample]
+  
+  # 3) Burg spectral estimate (AR(L) with length cap to ensure numerical stability)
+  arima_burg_obj <- arima(x_insample, order = c(min(L, 10), 0, 0), include.mean = FALSE)
+  spec <- arma_spectrum_func(arima_burg_obj$coef, NULL, K_burg, FALSE)$arma_spec
+  weight_func <- cbind(spec, spec)
+  colnames(weight_func) <- c("spectrum target", "spectrum explanatory")
+  weight_func_burg <- weight_func
+  
+  cutoff <- pi / periodicity
+  Gamma_burg <- (0:(K_burg)) <= K_burg * cutoff / pi + 1e-9
+  
+  # 4) MDFA with Burg spectrum
+  mdfa_burg_obj <- MDFA_mse(L, weight_func_burg, Lag, Gamma_burg)$mdfa_obj
+  b_burg <- mdfa_burg_obj$b
+  
+  # 5) DFT-based spectrum (in-sample)
+  weight_func_dft <- cbind(per(x_insample, F)$DFT, per(x_insample, F)$DFT)
+  colnames(weight_func_dft) <- c("spectrum target", "spectrum explanatory")
+  K_dft <- nrow(weight_func_dft) - 1
+  Gamma_dft <- (0:(K_dft)) <= K_dft * cutoff / pi + 1e-9
+  
+  mdfa_dft_obj <- MDFA_mse(L, weight_func_dft, Lag, Gamma_dft)$mdfa_obj
+  b_dft <- mdfa_dft_obj$b
+  
+  # 6) Apply filters to the full series
+  id_obj <- ideal_filter_func(periodicity, M, x)
+  output_ideal <- id_obj$y
+  
+  # 6a) DFA with Burg spectrum
+  filt_burg_obj <- filt_func(x, b_burg)
+  output_dfa_burg <- filt_burg_obj$yhat
+  
+  # 6b) DFA with DFT spectrum
+  filt_dft_obj <- filt_func(x, b_dft)
+  output_dfa_dft <- filt_dft_obj$yhat
+  
+  # 7) Out-of-sample MSE relative to the ideal filter
+  mse_burg <- c(mse_burg, mean((output_ideal - output_dfa_burg)[(in_sample + 1):len - M]^2, na.rm = TRUE))
+  mse_dft  <- c(mse_dft,  mean((output_ideal - output_dfa_dft)[(in_sample + 1):len - M]^2, na.rm = TRUE))
+  
   setTxtProgressBar(pb, i)
 }
 
-# Compute the ratio of root mean-square forecast errors:
-#   The ratio cannot be larger than 1 asymptotically because our particular design distinguishes arma as the universally best possible design
-sqrt(mean(mse_true)/mean(mse_dft))
+# 8) Summary: RMSE ratio
+# Interpretation:
+#   - Ratio close to 1 indicates Burg-based and DFT-based DFAs perform similarly
+#   - Ratio < 1 favors Burg-based DFA; ratio > 1 favors DFT-based DFA
+ratio <- sqrt(mean(mse_burg) / mean(mse_dft))
 
-# Results: 
-#   -for L=2*periodicity and in_sample=300, the ratio is typically around 97%: in the mean the non-parametric DFA performs as well (by all practical means) as the best possible forecast approach
-#   -for L=2*periodicity and in_sample=100, the ratio is typically around 89%: in the mean the non-parametric DFA performs close to the best possible forecast approach (despite massive overfitting)
-#     -Note that L=2*periodicity is fine for damping all components with durations shorter/equal periodicity
-#     -But fitting L=2*periodicity=20 parameters for a time series of length in_sample=100 is 
-#       not extremely smart (overfitting). See tutorial on regularization...
+ratio
 
 
 
-#---------------------------------------------------------------------------------------
-# Example 4: same as above but we compare DFA-dft (as above) and DFA based on Burg's maximum entropy spectral estimate
 
-# Example 4.1: MA(1)
-a1<-0.
-b1<-0.7
-# Example 4.2: ARMA with positive acf
-a1<-0.6
-b1<-0.7
-# Example 4.3: AR with negative acf
-a1<--0.9
-b1<-0
-# Example 4.4: nearly noise
-a1<--0.08
-b1<-0
-# Add any other processes...
-# We generate anzsim realizations of length len of the arma-process
-set.seed(1)
-len<-1000
-mse_true_arma<-mse_dfa<-NULL
-# Number of simulations
-anzsim<-500
-# Length of in-sample span
-in_sample<-300
-# Frequency grid for DFA based on Burg's estimate
-K_burg<-600
-# Lowpass target  
-periodicity<-10
-# Default (reasonable) filter length for nowcasting: this is also used for the estimation of Burg's max-entropy spectrum
-L<-2*periodicity
-# Nowcast
-Lag<-0
-# Length of ideal filter
-M<-100
-mse_burg<-mse_dft<-NULL
-pb <- txtProgressBar(min = 1, max = anzsim, style = 3)
-# Loop through all simulations and collect out-of-sample forecast performances
-for (i in 1:anzsim)
-{
-  # Distinguish white noise  
-  if (abs(a1)+abs(b1)>0)
-  {
-    # Generate series  
-    x<-as.vector(arima.sim(n=len,list(ar=a1,ma=b1)))
-  } else
-  {
-    x<-rnorm(len)
-    spec<-rep(1,K_burg+1)
-  }
-  # Use in-sample span for model-estimation and for dft  
-  x_insample<-x[1:in_sample]
-  # Burg spectral estimate: use AR(L)
-  # Restrict length of AR (otherwise numerical optimization fails)
-  arima_burg_obj<-arima(x_insample,order=c(min(L,10),0,0),include.mean=F)
-  # Spectrum based on burg model  
-  spec<-arma_spectrum_func(arima_burg_obj$coef,NULL,K_burg,F)$arma_spec
-  weight_func<-cbind(spec,spec)
-  colnames(weight_func)<-c("spectrum target","spectrum explanatory")
-  weight_func_burg<-weight_func
-  cutoff<-pi/periodicity
-  # target burg model: frequency grid is not the same as for dft below i.e. K is different
-  Gamma_burg<-(0:(K_burg))<=K_burg*cutoff/pi+1.e-9
-  mdfa_burg_obj<-MDFA_mse(L,weight_func_burg,Lag,Gamma_burg)$mdfa_obj 
-  b_burg<-mdfa_burg_obj$b
-  # Use in-sample span for dft  
-  weight_func_dft<-cbind(per(x_insample,F)$DFT,per(x_insample,F)$DFT)
-  colnames(weight_func_dft)<-c("spectrum target","spectrum explanatory")
-  K_dft<-nrow(weight_func_dft)-1
-  Gamma_dft<-(0:(K_dft))<=K_dft*cutoff/pi+1.e-9
-  # Compute MSE-filter
-  mdfa_dft_obj<-MDFA_mse(L,weight_func_dft,Lag,Gamma_dft)$mdfa_obj 
-  b_dft<-mdfa_dft_obj$b
-  # Filter data
-  # 1. ideal filter  
-  id_obj<-ideal_filter_func(periodicity,M,x)
-  output_ideal<-id_obj$y
-  # 2. DFA burg
-  filt_burg_obj<-filt_func(x,b_burg)
-  output_dfa_burg<-filt_burg_obj$yhat
-  # 3. DFA dft
-  filt_dft_obj<-filt_func(x,b_dft)
-  output_dfa_dft<-filt_dft_obj$yhat
-  # Mean-square out-of-sample filter error  
-  mse_burg<-c(mse_burg,mean((output_ideal-output_dfa_burg)[(in_sample+1):len-M]^2,na.rm=T))
-  mse_dft<-c(mse_dft,mean((output_ideal-output_dfa_dft)[(in_sample+1):len-M]^2,na.rm=T))
-  setTxtProgressBar(pb, i)
-}
 
-# Compute the ratio of root mean-square forecast errors:
 
-sqrt(mean(mse_burg)/mean(mse_dft))
 
-# Results: 
-#   -for L=2*periodicity and in_sample=300, the ratio is 98% i.e. both approaches are indistinguishable by all practical means
+
+
+
+
+
+
+
+
+
 
