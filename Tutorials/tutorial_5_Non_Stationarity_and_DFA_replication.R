@@ -15,6 +15,9 @@
 #       -the unit roots are cancelled by imposing the constraints
 #       -the filter error is stationary (finite variance): in- and out-of-sample
 #         -An infinite variance error would contradict the MSE principle
+#     d. The new wrapper MDFA_cust() is more general than MDFA_mse() of previous tutorials
+#       -setting i1=i2=F (no constraints) replicates MDFA_mse()
+
 # =============================================================================
 # Approach
 # =============================================================================
@@ -284,7 +287,9 @@ weight_func_hp[1, ] <- 0
 # Filter length equals sample length
 L <- len
 
-# Constraint flags: impose both amplitude and shift constraints at freq. zero
+# The new wrapper MDFA_cust() is more general than MDFA_mse() of previous tutorials
+#   -setting i1=i2=F (no constraints) replicates MDFA_mse()
+# HP Constraint flags: impose both amplitude and shift constraints at freq. zero
 i1 <- T    # Amplitude constraint: filter passes the trend in original scale
 i2 <- T    # Phase constraint:     no time-shift at frequency zero
 

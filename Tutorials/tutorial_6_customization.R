@@ -1,46 +1,70 @@
-# To do: link to trilemma paper
+# Link to trilemma paper: McElroy, T. and Wildi, M. (2020). 
+# "The Trilemma between Accuracy, Timeliness and Smoothness in Real-Time Signal Extraction"
+# International Journal of Forecasting, 36(2), 423-438.
+# https://doi.org/10.1016/j.ijforecast.2019.04.010
 
+# ==============================================================================
+# Tutorial 6
+# ==============================================================================
+#
+# Purpose of tutorial:
+#   - Introduce new MDFA-wrapper MDFA_cust()
+#   - Illustrate decomposition of classic MSE-norm into Accuracy, Timeliness
+#     and Smoothness components: ATS-trilemma (see McElroy/Wildi)
+#   - Analyze filter characteristics (amplitude/shift) when emphasizing
+#     Timeliness (the T in the ATS-trilemma)
+#   - Analyze filter characteristics (amplitude/shift) when emphasizing
+#     Smoothness (the S in the ATS-trilemma)
+#   - Analyze filter characteristics (amplitude/shift) when emphasizing both
+#     T and S: power of trilemma (when compared to classic MSE-dilemma)
+#   - Compare univariate customized DFA to bivariate leading indicator
+#     (MSE-) MDFA of previous tutorial
+#   - Compare all designs to customized bivariate MDFA
+#   - Proceed to extensive (out-of-sample) simulation studies
+#
+# New parameters:
+#   - lambda : controls Timeliness emphasis in MDFA_cust / MDFA_reg
+#   - eta    : controls Smoothness emphasis in MDFA_cust / MDFA_reg
+# ==============================================================================
 
+rm(list = ls())
 
-
-
-# Purpose of tutorial: 
-# -Illustrate decomposition of classic MSE-norm into Accuracy, Timeliness and Smoothness components: ATS-trilemma (see McElroy/Wildi)
-# -Analyze filter characteristics (amplitude/shift) when emphasizing Timeliness (the T in the ATS-trilemma)
-# -Analyze filter characteristics (amplitude/shift) when emphasizing Smoothness (the S in the ATS-trilemma)
-# -Analyze filter characteristics (amplitude/shift) when emphasizing both T and S: power of trilemma (when compared to classic MSE-dilemma)
-# -Compare univariate customized DFA to bivariate leading indicator (MSE-) MDFA of previous tutorial
-# -Compare all designs to customized bivariate MDFA
-# -Proceed to extensive (out-of-sample) simulation studies
-
-
-# New parameters: we will learn to work with the parameters lambda and eta appearing in the calls to the (new) functions MDFA_cust and the previous MDFA_reg
-
-
-
-rm(list=ls())
-
+# ------------------------------------------------------------------------------
+# Load libraries
+# ------------------------------------------------------------------------------
 library(xts)
-#install.packages("devtools")
+# install.packages("devtools")  # Uncomment if devtools not yet installed
 library(devtools)
-# Load MDFA package from github
-#devtools::install_github("wiaidp/MDFA")
-# MDFA package: EURUSD is now part of the data in the package
+
+# Load MDFA package from GitHub
+ devtools::install_github("wiaidp/MDFA")  # Uncomment if MDFA not yet installed
+# Note: EURUSD data is bundled within the MDFA package
 library(MDFA)
 
+# ------------------------------------------------------------------------------
+# Brief overview of available wrapper functions and main estimation function
+# ------------------------------------------------------------------------------
+# Wrappers:
+#   MDFA_mse                 - MSE criterion (no constraints)
+#   MDFA_mse_constraint      - MSE criterion (with constraints: non-stationarity)
+#   MDFA_cust                - Customized criterion (lambda/eta, no constraints)
+#   MDFA_cust_constraint     - Customized criterion (lambda/eta, with constraints)
+#   MDFA_reg                 - Regularized criterion (no constraints)
+#   MDFA_reg_constraint      - Regularized criterion (with constraints)
+# Main estimation function:
+#   mdfa_analytic            - Core analytic DFA estimation routine
 
-# Brief overview of wrappers and main function
 head(MDFA_mse)
 head(MDFA_mse_constraint)
 head(MDFA_cust)
 head(MDFA_cust_constraint)
 head(MDFA_reg)
 head(MDFA_reg_constraint)
-# Main estimation function
 head(mdfa_analytic)
 
-#-----------------------------------------------------------------------------------------------
-# Source common functions
+# ------------------------------------------------------------------------------
+# Source common utility functions
+# ------------------------------------------------------------------------------
 source("Common functions/plot_func.r")
 source("Common functions/arma_spectrum.r")
 source("Common functions/ideal_filter.r")
@@ -48,130 +72,216 @@ source("Common functions/mdfa_trade_func.r")
 source("Common functions/play_with_bivariate.r")
 source("Common functions/functions_trilemma.r")
 source("Common functions/compute_customized_designs.r")
-#---------------------------------------------------------------------------------------------
-# Example 1: emphasizing Timeliness
-# Univariate
 
-len<-300
-a1<-0.0
-b1<-NULL
+# ==============================================================================
+# Example 1: Emphasizing Timeliness (lambda > 0, eta = 0)
+# Univariate setting
+# ==============================================================================
+#
+# The customized DFA criterion decomposes the MSE into three components:
+#   Accuracy  (A) : standard MSE passband/stopband fit
+#   Timeliness (T): penalizes phase shifts (controlled by lambda)
+#   Smoothness (S): penalizes roughness of the filter output (controlled by eta)
+#
+# Here we fix eta = 0 (no smoothness emphasis) and vary lambda to isolate
+# the effect of increasing timeliness emphasis.
+
+# The setting lambda=eta=0 replicates the classical MSE DFA: the new wrapper MDFA_cust()
+#   is more general than MDFA_mse() of previous tutorials
+# ------------------------------------------------------------------------------
+
+# --- Data simulation ----------------------------------------------------------
+len <- 300
+a1  <- 0.0          # AR coefficient (white noise when a1 = 0)
+b1  <- NULL         # MA coefficients (none)
 set.seed(1)
-x<-as.vector(arima.sim(n=len,list(ar=a1,ma=b1)))
-# Spectrum
-K<-600
-plot_T<-T
-weight_func<-cbind(arma_spectrum_func(a1,b1,K,plot_T)$arma_spec,arma_spectrum_func(a1,b1,K,plot_T)$arma_spec)
-# Target: periodicity
-periodicity<-5
-cutoff<-pi/periodicity
-Gamma<-(0:(K))<=K*cutoff/pi+1.e-9
-# Specify filter length
-L<-50
-# Nowcast
-Lag<-0
-# Specify the lambdas: emphasize Timeliness
-lambda_vec<-c(0,2^(0:7))
-# Specify the fixed eta: do not emphasize Smoothness
-eta_vec<-rep(0,length(lambda_vec))
+x   <- as.vector(arima.sim(n = len, list(ar = a1, ma = b1)))
 
-for (i in 1:length(lambda_vec))#i<-1
-{
-  lambda<-lambda_vec[i]
-  eta<-eta_vec[i]
+# --- Spectral setup -----------------------------------------------------------
+K          <- 600    # Number of frequency grid points (grid: 0, pi/K, ..., pi)
+plot_T     <- TRUE
+
+# Spectrum weight function (both columns identical for univariate case)
+weight_func <- cbind(
+  arma_spectrum_func(a1, b1, K, plot_T)$arma_spec,
+  arma_spectrum_func(a1, b1, K, plot_T)$arma_spec
+)
+
+# --- Target (ideal) filter ----------------------------------------------------
+periodicity <- 6                          # Target: cycles of period <= 2*6
+cutoff      <- pi / periodicity           # Corresponding cutoff frequency
+# Gamma: ideal low-pass target (1 in passband [0, cutoff], 0 elsewhere)
+Gamma       <- (0:K) <= K * cutoff / pi + 1e-9
+
+# --- Filter design parameters -------------------------------------------------
+L   <- 50    # Filter length (number of coefficients)
+Lag <- 0     # Lag = 0 => nowcast (real-time signal extraction)
+
+# --- Timeliness parameter grid ------------------------------------------------
+# lambda = 0   : pure MSE (no timeliness emphasis)
+# lambda > 0   : increasing timeliness emphasis
+lambda_vec <- c(0, 2^(0:7))              # 0, 1, 2, 4, 8, ..., 128
+eta_vec    <- rep(0, length(lambda_vec)) # eta fixed at 0 throughout
+
+# --- Compute filter designs across lambda grid --------------------------------
+for (i in seq_along(lambda_vec)) {
   
-  mdfa_obj<-MDFA_cust(L,weight_func,Lag,Gamma,cutoff,lambda,eta)$mdfa_obj
-# Keep track of transferfunctions, filter coefficients and of filtered outputs 
-  if (i==1)
-  {
-    trffkt_mat<-mdfa_obj$trffkt
-    b_mat<-mdfa_obj$b
-    yhat_mat<-filt_func(x,mdfa_obj$b)$yhat
-      
-  } else
-  {
-    trffkt_mat<-cbind(trffkt_mat,mdfa_obj$trffkt)
-    b_mat<-cbind(b_mat,mdfa_obj$b)
-    yhat_mat<-cbind(yhat_mat,filt_func(x,mdfa_obj$b)$yhat)
-  } 
+  lambda   <- lambda_vec[i]
+  eta      <- eta_vec[i]
+  mdfa_obj <- MDFA_cust(L, weight_func, Lag, Gamma, cutoff, lambda, eta)$mdfa_obj
+  
+  # Store transfer functions, filter coefficients, and filtered outputs
+  if (i == 1) {
+    trffkt_mat <- mdfa_obj$trffkt
+    b_mat      <- mdfa_obj$b
+    yhat_mat   <- filt_func(x, mdfa_obj$b)$yhat
+  } else {
+    trffkt_mat <- cbind(trffkt_mat, mdfa_obj$trffkt)
+    b_mat      <- cbind(b_mat,      mdfa_obj$b)
+    yhat_mat   <- cbind(yhat_mat,   filt_func(x, mdfa_obj$b)$yhat)
+  }
 }
 
-# Compare amplitude and time shifts
-par(mfrow=c(2,2))
-mplot<-abs(trffkt_mat)
-dimnames(mplot)[[2]]<-paste("Amplitude (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
-plot_title<-"Amplitude functions"
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
-mplot<-abs(trffkt_mat)
-# Scale amplitudes for easier visual inspection
-for (i in 1:ncol(mplot))
-  mplot[,i]<-mplot[,i]/max(mplot[,i])
-dimnames(mplot)[[2]]<-paste("Scaled amplitude (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
-plot_title<-"Scaled amplitude functions"
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
-mplot<-Arg(trffkt_mat)/(pi*(0:K)/K)
-dimnames(mplot)[[2]]<-paste("Time-shifts (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
-plot_title<-"Time-shifts"
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
+# --- Plot: Amplitude and time-shift functions ---------------------------------
+par(mfrow = c(2, 2))
+
+# Frequency axis labels
+ax <- rep(NA, K + 1)
+ax[1 + (0:6) * (K / 6)] <- c("0", "pi/6", "2pi/6", "3pi/6", "4pi/6", "5pi/6", "pi")
+
+col_labels <- paste0("(lambda=", lambda_vec, ", eta=", eta_vec, ")")
+colo       <- rainbow(length(lambda_vec))
+
+# 1. Raw amplitude functions
+mplot <- abs(trffkt_mat)
+dimnames(mplot)[[2]] <- paste("Amplitude", col_labels)
+mplot_func(mplot, ax,
+           plot_title  = "Amplitude functions",
+           title_more  = dimnames(mplot)[[2]],
+           insamp      = 1e+90,
+           colo        = colo)
+
+# 2. Scaled amplitude functions (each rescaled to max = 1 for visual comparison)
+mplot_scaled <- abs(trffkt_mat)
+for (i in seq_len(ncol(mplot_scaled)))
+  mplot_scaled[, i] <- mplot_scaled[, i] / max(mplot_scaled[, i])
+dimnames(mplot_scaled)[[2]] <- paste("Scaled amplitude", col_labels)
+mplot_func(mplot_scaled, ax,
+           plot_title  = "Scaled amplitude functions",
+           title_more  = dimnames(mplot_scaled)[[2]],
+           insamp      = 1e+90,
+           colo        = colo)
+
+# 3. Time-shift functions: phase / omega  (units: time periods)
+#    A negative shift indicates the filter leads the target.
+mplot_shift <- Arg(trffkt_mat) / (pi * (0:K) / K)
+dimnames(mplot_shift)[[2]] <- paste("Time-shift", col_labels)
+mplot_func(mplot_shift, ax,
+           plot_title  = "Time-shift functions",
+           title_more  = dimnames(mplot_shift)[[2]],
+           insamp      = 1e+90,
+           colo        = colo)
+#======================================================
+# Outcome:
+# - lambda = eta = 0 corresponds to the classical MSE-optimal DFA design
+# - The primary benefit of increasing lambda > 0 is a reduction in lag (positive time-shift) within the passband (see lower panel)
+# - Larger lambda also tends to compress the amplitude function (top left panel: undesirable side effect),
+#     although this can be mitigated to a reasonable extent through simple rescaling
+# - In the example above, the phase shift (lag) decreases from approximately 1 (when lambda = 0, i.e., MSE design)
+#     to approximately 0 for lambda > 8
+# - Values of lambda > 8 yield diminishing returns, with negligible further changes to the filter shape
+#======================================================
+
+# --- Plot: Filter outputs -----------------------------------------------------
+anf <- 250   # Start index for output display window
+enf <- 300   # End index for output display window
+
+par(mfrow = c(1, 1))
+
+# Time axis labels for output window
+n_out <- enf - anf + 1
+ax_out <- rep(NA, n_out)
+ax_out[1 + (0:6) * floor((n_out - 1) / 6)] <-
+  as.integer(anf + (0:6) * floor((n_out - 1) / 6))
+
+# 4. Raw filter outputs
+mplot_out <- yhat_mat[anf:enf, ]
+dimnames(mplot_out)[[2]] <- paste("Output", col_labels)
+mplot_func(mplot_out, ax_out,
+           plot_title  = "Filter outputs",
+           title_more  = dimnames(mplot_out)[[2]],
+           insamp      = 1e+90,
+           colo        = colo)
+
+# 5. Scale filter outputs (rescaled by max amplitude for fair visual comparison) and Zoom in
+anf <- 260   # Start index for output display window
+enf <- 280   # End index for output display window
+# Time axis labels for output window
+n_out <- enf - anf + 1
+ax_out <- rep(NA, n_out)
+ax_out[1 + (0:6) * floor((n_out - 1) / 6)] <-
+  as.integer(anf + (0:6) * floor((n_out - 1) / 6))
+
+mplot_out_scaled <- yhat_mat[anf:enf, ]
+for (i in seq_len(ncol(mplot_out_scaled)))
+  mplot_out_scaled[, i] <- mplot_out_scaled[, i] / max(abs(trffkt_mat)[, i])
+dimnames(mplot_out_scaled)[[2]] <- paste("Scaled output", col_labels)
+mplot_func(mplot_out_scaled, ax_out,
+           plot_title  = "Scaled filter outputs",
+           title_more  = dimnames(mplot_out_scaled)[[2]],
+           insamp      = 1e+90,
+           colo        = colo)
+
+# ==============================================================================
+# Outcome:
+#   - Increasing lambda augments the left-shift (i.e., reduces lag) in the filter output
+#   - The left-shift is bounded above by 1 time-unit, since the target is a nowcast
+#       - Setting Lag < 0 (i.e., forecasting) would allow for a more pronounced left-shift
+# ==============================================================================
 
 
-# Compare filter outputs
-anf<-250
-enf<-300
-par(mfrow=c(1,2))
-mplot<-yhat_mat[anf:enf,]
-dimnames(mplot)[[2]]<-paste("Filter outputs (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-as.integer(1+(0:6)*((nrow(mplot)-1)/6))
-plot_title<-"Filter outputs"
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
+
+# ==============================================================================
+# Example 2: Emphasizing Smoothness (lambda = 0, eta > 0)
+# Univariate setting
+# ==============================================================================
+#
+# Here we fix lambda = 0 (no timeliness emphasis) and vary eta to isolate
+# the effect of increasing smoothness emphasis.
+#
+# The smoothness penalty (eta) penalizes high-frequency content in the
+# filter output, resulting in smoother (less noisy) estimates at the cost
+# of some accuracy and potential phase distortion.
+# ------------------------------------------------------------------------------
+
+# --- Smoothness parameter grid ------------------------------------------------
+eta_vec    <- 0.1 * 0:6                  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6
+lambda_vec <- rep(0, length(eta_vec))    # lambda fixed at 0 throughout
+
+# --- Compute and plot all designs (reuses the helper function) ----------------
+# This replicates the full loop + plotting pipeline from Example 1 in one call.
+compute_customized_designs_func(
+  lambda_vec  = lambda_vec,
+  eta_vec     = eta_vec,
+  L           = L,
+  weight_func = weight_func,
+  Lag         = Lag,
+  Gamma       = Gamma,
+  cutoff      = cutoff
+)
+
+# ==============================================================================
+# Outcome:
+# - The primary desirable effect of increasing eta is the suppression of the amplitude
+#     towards zero in the stopband (improved noise attenuation)
+# - Undesirable side effects:
+#     - Time-shift generally increases (due to stronger smoothing)
+#     - The amplitude in the passband shrinks towards zero (shrinkage effect);
+#         the latter can be partially compensated for by simple rescaling
+# ==============================================================================
 
 
-# Compare scaled filter outputs
-mplot<-yhat_mat[anf:enf,]
-# Scale outputs for easier visual inspection
-for (i in 1:ncol(mplot))
-  mplot[,i]<-mplot[,i]/max(abs(trffkt_mat)[,i])
-dimnames(mplot)[[2]]<-paste("Filter outputs (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-as.integer(1+(0:6)*((nrow(mplot)-1)/6))
-plot_title<-"Scaled filter outputs"
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
 
-
-
-#-------------------------------------------------------------------------
-# Example 2: emphasizing Smoothness
-# Univariate
-
-# Specify the lambdas: do not emphasize Timeliness
-lambda_vec<-rep(0,length(eta_vec))
-# Specify the fixed eta: emphasize Smoothness
-eta_vec<-0.3*0:6
-
-# The following function replicates the above lengthy code of example 1
-compute_customized_designs_func(lambda_vec,eta_vec,L,weight_func,Lag,Gamma,cutoff)
-  
 
 #-----------------------------------------------------------------------------------------------
 # Example 3: emphasizing both Timeliness and Smoothness
@@ -179,7 +289,7 @@ compute_customized_designs_func(lambda_vec,eta_vec,L,weight_func,Lag,Gamma,cutof
 
 # MSE vs. customized emphasizing S&T
 
-eta_vec<-c(0,0.4)
+eta_vec<-c(0,0.6)
 lambda_vec<-c(0,50)
 
 # The following function replicates the above lengthy code of example 1

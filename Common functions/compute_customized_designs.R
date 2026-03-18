@@ -47,6 +47,7 @@ compute_customized_designs_func<-function(lambda_vec,eta_vec,L,weight_func,Lag,G
   colo<-rainbow(ncol(mplot))
   mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
   mplot<-Arg(trffkt_mat)/(pi*(0:K)/K)
+  mplot[1,]<-NA
   dimnames(mplot)[[2]]<-paste("Time-shifts (",lambda_vec,",",eta_vec,")",sep="")
   ax<-rep(NA,ncol(mplot))
   ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
