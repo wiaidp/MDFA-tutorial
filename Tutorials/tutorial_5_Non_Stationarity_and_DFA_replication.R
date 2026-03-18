@@ -1,25 +1,36 @@
 # =============================================================================
 # Tutorial 5
 # =============================================================================
-# Purpose:
-#   Replicate one-sided and symmetric classic filter designs, specifically:
+# Purposes:
+#   I) Replicate one-sided and symmetric classic filter designs by (M)DFA, specifically:
 #     1. Hodrick-Prescott (HP) lowpass filter
 #     2. Christiano-Fitzgerald (CF) bandpass filter
 #     3. Hamilton filter 
+#   II) Address non-stationarity
+#   III) Demonstrate the MDFA wrapper MDFA_mse_constraint()
+#     a. This MDFA wrapper extends application of the MDFA to non-stationary time series with
+#       unit roots at omega=0 (I(1) or I(2) processes)
+#     b. Unit roots of the process are matched by imposing constraints to the causal (MDFA-) filter 
+#     c. The constraints ensure a `perfect' tracking of the target at frequency zero 
+#       -the unit roots are cancelled by imposing the constraints
+#       -the filter error is stationary (finite variance): in- and out-of-sample
+#         -An infinite variance error would contradict the MSE principle
 # =============================================================================
 # Approach
 # =============================================================================
 # a. Filter Class:
-#     Both (real-time, causal) filters are constrained MSE designs — no customization or explicit
-#     regularization — but with unit-root constraints imposed at frequency zero.
-#     The constraints reflect unit root assumptions of the underlying (implicit) models
+#     All (real-time, causal) filters are constrained MSE designs — no customization or explicit
+#     regularization applied — but possibly with unit-root constraints imposed at frequency zero.
+#     The constraints reflect unit root assumptions of the underlying (implicit) models.
+#     Imposing the constraints ensures that the filter error variance remains finite when applied to 
+#       non-stationary integrated processes
 #
 # b. Inputs Required for Replication:
 #     To replicate these filters via MDFA, three ingredients must be supplied:
 #       - weight_func (pseudo-spectrum)
 #       - Gamma (target gain function)
 #       - Constraints at frequency zero
-#     These are handled by the MDFA_mse_constraint wrapper.
+#     These are handled by the MDFA_mse_constraint() wrapper.
 #
 #     Deriving weight_func:
 #       The pseudo-spectrum is derived from the implicit model-based
@@ -36,7 +47,7 @@
 #       - CF: target is the ideal bandpass as specified by the original authors.
 #       -Hamilton: one-sided Hamilton filter (is already causal, but can be customized)
 # c. Unit-Root Constraints at Frequency Zero:
-#     Since both implicit models (HP,CF) are non-stationary, classic constraints must
+#     Since implicit models of HP and CF are non-stationary, classic constraints must
 #     be imposed at frequency zero:
 #
 #       - HP (lowpass):
