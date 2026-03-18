@@ -94,7 +94,7 @@ III. Smoothness — suppressing spurious noise and erratic fluctuations
 
 
 
-Together, these form the ATS trilemma: any improvement along one dimension inevitably comes at the cost of at least one of the others. There is no free lunch.
+Together, these form the ATS trilemma: in an MDFA-optimized predictor, any improvement along one dimension inevitably comes at the cost of at least one of the others. There is no free lunch. This is because MDFA defines (and sits on) the efficient frontier of the ATS trilemma. The classical MSE predictor is a single point on this frontier and MDFA extends it to the entire (2-dim) hyperplane.
 
 
 
