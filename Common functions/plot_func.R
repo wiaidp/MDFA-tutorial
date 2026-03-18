@@ -93,6 +93,7 @@ plot_estimate_func<-function(mdfa_obj,weight_func,Gamma)
                                     "4pi/6","5pi/6","pi"))
   axis(2)
   box()
+  
   plot(abs(mdfa_obj$trffkt)[,1],type="l",main=paste("Amplitude concurrent, denseness=",K,sep=""),
        axes=F,xlab="Frequency",ylab="Amplitude",col="black",ylim=c(0,max(1,max(abs(mdfa_obj$trffkt)))))
   # We take 2-nd colname from weight_func because the first column is the target        
@@ -100,7 +101,7 @@ plot_estimate_func<-function(mdfa_obj,weight_func,Gamma)
   lines(Gamma,col="violet")
   mtext("Target Gamma",line=-2,col="violet")
   lines(0.5*abs(weight_func[,1])/max(abs(weight_func[,1])),col="red",lwd=3)
-  mtext("Spectrum (red bold)",line=-3,col="red")
+  mtext("Spectrum (red bold): scaled by 0.5",line=-3,col="red")
   if (ncol(abs(mdfa_obj$trffkt))>1)
   {
     for (i in 2:ncol(abs(mdfa_obj$trffkt)))

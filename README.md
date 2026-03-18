@@ -58,19 +58,19 @@ Prediction tasks can take many forms:
 
 
 
-\-One-step-ahead forecasting — predicting the immediately next observation
+\-One-step-ahead forecasting — predicting the immediately next observation (prioritizes short-term accuracy)
 
 
 
-\-Multi-step-ahead forecasting — projecting values further into the future
+\-Multi-step-ahead forecasting — projecting values further into the future (fits and extrapolates short- to medium-term dynamics)
 
 
 
-\-General weighted combinations of future observations (involving possibly bi-infinite filters) — as encountered in signal extraction, trend estimation, and seasonal adjustment.
+\-General weighted combinations of future observations (involving possibly bi-infinite filters) — as encountered in signal extraction, trend or cycle estimation, and seasonal adjustment (emphasizes medium- and long-term components).
 
 
 
-Because these objectives differ fundamentally in structure, no single fixed criterion can adequately serve them all.
+Because these objectives differ in structure, no single fixed criterion can adequately serve them all.
 
 
 
