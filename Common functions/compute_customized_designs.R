@@ -73,15 +73,19 @@ compute_customized_designs_func<-function(lambda_vec,eta_vec,L,weight_func,Lag,G
   mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
   
   
-  # Compare scaled filter outputs
+  # Compare scaled filter outputs and zoom in
+  anf<-260
+  enf<-280
+  
   mplot<-yhat_mat[anf:enf,]
   # Scale outputs for easier visual inspection
   for (i in 1:ncol(mplot))
     mplot[,i]<-mplot[,i]/max(abs(trffkt_mat)[,i])
   dimnames(mplot)[[2]]<-paste("Filter outputs (",lambda_vec,",",eta_vec,")",sep="")
+  # Compare filter outputs
   ax<-rep(NA,ncol(mplot))
   ax[1+(0:6)*((nrow(mplot)-1)/6)]<-as.integer(1+(0:6)*((nrow(mplot)-1)/6))
-  plot_title<-"Scaled filter outputs"
+  plot_title<-"Zoom in and scale"
   insamp<-1.e+90
   title_more<-dimnames(mplot)[[2]]
   colo<-rainbow(ncol(mplot))
