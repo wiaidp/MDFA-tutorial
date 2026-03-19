@@ -8,13 +8,13 @@ compute_customized_designs_func<-function(lambda_vec,eta_vec,L,weight_func,Lag,G
     eta<-eta_vec[i]
     
     mdfa_obj<-MDFA_cust(L,weight_func,Lag,Gamma,cutoff,lambda,eta)$mdfa_obj
+    
     # Keep track of transferfunctions, filter coefficients and of filtered outputs 
     if (i==1)
     {
       trffkt_mat<-mdfa_obj$trffkt
       b_mat<-mdfa_obj$b
       yhat_mat<-filt_func(x,mdfa_obj$b)$yhat
-      
     } else
     {
       trffkt_mat<-cbind(trffkt_mat,mdfa_obj$trffkt)
@@ -59,6 +59,8 @@ compute_customized_designs_func<-function(lambda_vec,eta_vec,L,weight_func,Lag,G
   
   
   # Compare filter outputs
+  if (F)
+  {
   anf<-250
   enf<-300
   par(mfrow=c(1,2))
@@ -71,10 +73,10 @@ compute_customized_designs_func<-function(lambda_vec,eta_vec,L,weight_func,Lag,G
   title_more<-dimnames(mplot)[[2]]
   colo<-rainbow(ncol(mplot))
   mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
-  
+  }
   
   # Compare scaled filter outputs and zoom in
-  anf<-260
+  anf<-250
   enf<-280
   
   mplot<-yhat_mat[anf:enf,]
