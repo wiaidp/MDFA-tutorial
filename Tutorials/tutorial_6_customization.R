@@ -390,6 +390,7 @@ mplot_func(mplot_out_scaled, ax_out,
 
 
 
+
 # ==============================================================================
 # Example 2: Emphasizing Smoothness (lambda = 0, eta > 0)
 # Univariate setting
@@ -493,127 +494,13 @@ compute_customized_designs_func(lambda_vec, eta_vec, L, weight_func, Lag, Gamma,
 
 
 
-# ==============================================================================
-# Example 4: Replicate an example in McElroy and Wildi (2019)
-# ==============================================================================
-
-# Compute A, T, S and MSE statistics
-
-
-eta_vec<-c(0,1)
-# Specify the fixed lambda
-lambda_vec<-c(0,128)
-
-# Specify the processes: ar(1) with coefficients -0.9,0.1 and 0.9
-#   One can specify different processes at once and the code will loop through 
-#   For simplicity we here use positive and nearly zero autocorrelation
-a_vec<-c(0.9,0.08,-0.9)
-# Ordinary ATS-components
-scaled_ATS<-F
-# Generate a single realization of the processes
-anzsim<-1
-# Use periodogram
-mba<-F
-estim_MBA<-T
-L_sym<-1000
-# Length of long data (for computing the target)
-len1<-3000
-# Length of in-sample span
-len<-120
-# Frequency grid: length of periodogram i.e. len/2
-K<-len/2
-# Periodicity
-periodicity<-12
-cutoff<-pi/periodicity
-# Specify filter length
-L<-2*periodicity
-# Real-time design
-Lag<-0
-# no constraints
-i1<-i2<-F
-# Use original (not differenced) data
-dif<-F
-
-
-# Proceed to estimation
-for_sim_obj<-for_sim_out(a_vec,len1,len,cutoff,L,mba,estim_MBA,L_sym,
-                         Lag,i1,i2,scaled_ATS,lambda_vec,eta_vec,anzsim,K,dif)
-
-
-
-# ATS-components
-#   -Decomposition of MSE into Accuracy (A), Timeliness (T) and Smoothness (S), see trilemma paper Wildi/Mcelroy
-#   -Customization here emphasizes T (lambda>0) and S (eta>0) simultaneously at cost of A
-#   -As can be seen in table below: A (of customized design) degrades massiveley in favour of substantial improvements by T and S
-#   -MSE (of customized) degrades obviously, since customization is a deliberate departure of MSE-performances
-#     A degrades overproportionally when improving S/T
-ats_sym_ST<-for_sim_obj$ats_sym
-# 2 Curvature, Peak Correlation, ...
-amp_shift_mat_sim<-for_sim_obj$amp_shift_mat_sim
-# 3. Amplitude and time-shifts
-amp_sim_per<-for_sim_obj$amp_sim_per
-shift_sim_per<-for_sim_obj$shift_sim_per
-# 4. Output series
-xff_sim<-for_sim_obj$xff_sim
-# 5. Peak correlation and Curvature
-amp_shift_mat_sim_ST<-for_sim_obj$amp_shift_mat_sim
-dim_names<-for_sim_obj$dim_names
-# Process 1 (positive acf) or 2 (zero acf) 
-DGP<-1
-ats_sym_ST[-1,,DGP,1]
-
-# Amplitude and time shift
-par(mfrow=c(1,2))
-mplot<-amp_sim_per[,-1,DGP,1]
-dimnames(mplot)[[2]]<-paste("Amplitude (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
-plot_title<-paste("Amplitude functions: a1=",a_vec[DGP],sep="")
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
-mplot<-shift_sim_per[,-1,DGP,1]
-dimnames(mplot)[[2]]<-paste("Time-shifts (",lambda_vec,",",eta_vec,")",sep="")
-ax<-rep(NA,ncol(mplot))
-ax[1+(0:6)*((nrow(mplot)-1)/6)]<-c(0,"pi/6","2pi/6","3pi/6","4pi/6","5pi/6","pi")
-plot_title<-paste("Time-shifts: a1=",a_vec[DGP],sep="")
-insamp<-1.e+90
-title_more<-dimnames(mplot)[[2]]
-colo<-rainbow(ncol(mplot))
-mplot_func(mplot, ax, plot_title, title_more, insamp, colo)
-
-par(mfrow=c(1,1))
-series_vec<-c(2,3)
-xf_per<-xff_sim[940:(940+len),,DGP,1]#dim(xff_sim)
-dimnames(xf_per)[[2]]<-dim_names[[1]]
-anf<-1
-enf<-len
-mplot<-scale(cbind(xf_per[,series_vec[1]],xf_per[,series_vec[2]])[anf:enf,])  #head(xf_per)
-plot(as.ts(mplot[,1]),type="l",axes=F,col="red",ylim=c(min(na.exclude(mplot)),
-                                                       max(na.exclude(mplot))),ylab="",xlab="",
-     main=paste("MSE (red) vs. Customized (cyan): a1=",a_vec[DGP],sep=""),lwd=1)
-mtext("MSE", side = 3, line = -1,at=(enf-anf)/2,col=colo[1])
-i<-2
-lines(as.ts(mplot[,i]),col=colo[2],lwd=2)
-mtext(paste("Customized: ",dimnames(xf_per)[[2]][series_vec[2]],sep=""), side = 3, line = -i,at=(enf-anf)/2,col=colo[2])
-axis(1,at=c(1,rep(0,6))+as.integer((0:6)*(enf-anf)/6),
-     labels=as.integer(anf+(0:6)*(enf-anf)/6))
-axis(2)
-box()
-
-
-
-
-
-
 
 
 # ================================================================================
-# Example 5: Simulation Exercise — Interpreting Timeliness (T) and Smoothness (S)
+# Example 4: Simulation Exercise — Interpreting Timeliness (T) and Smoothness (S)
 # ================================================================================
 # Motivation:
-#   - The ATS criteria (Accuracy, Timeliness, Smoothness) are relatively new concepts,
+#   - The ATS components (Accuracy, Timeliness, Smoothness) are relatively new concepts,
 #     and their practical interpretation may not be immediately intuitive.
 #   - Rather than relying solely on T and S directly, we map them to two well-established,
 #     scale-invariant alternative statistics that are easier to interpret:
@@ -623,7 +510,7 @@ box()
 #              symmetric filter) until the correlation between the two series is maximized.
 #            - A smaller shift implies a faster filter (smaller lag).
 #            - Scale invariant: rescaling the filter output does not affect this measure.
-#            - Expectation: emphasizing T (lambda > 0) yields faster filters
+#            - Expectation: emphasizing T in the customized criterion (lambda > 0) yields faster filters
 #              (smaller shift at peak correlation).
 #
 #       2. RELATIVE CURVATURE (proxy for Smoothness, S):
@@ -641,11 +528,11 @@ box()
 #
 #   Data:
 #     - Multiple realizations of three different AR(1) processes, covering positive,
-#       near-zero, and negative autocorrelation structures (a_vec = 0.9, 0.08, -0.9).
+#       near-zero, and negative autocorrelation structures.
 #
 #   Filters Compared:
 #     1. SYMMETRIC TARGET FILTER:
-#          - Two-sided filter (looks into the future); serves as the ideal reference.
+#          - Two-sided filter (looks into the future); serves as the target.
 #          - One-sided filters are expected to lag behind this target
 #            (positive shift at peak correlation).
 #
@@ -710,7 +597,7 @@ a_vec <- c(0.9, 0.08, -0.9)
 #   lambda controls timeliness emphasis
 #   eta    controls smoothness emphasis
 lambda_vec <- c(0,   0,   30,  500)
-eta_vec    <- c(0,   1.5, 1,   0.3)
+eta_vec    <- c(0,   1.5, 1.5,   0.3)
 
 # Display design parameter table for reference
 table_mat          <- rbind(lambda_vec, eta_vec)
@@ -869,7 +756,7 @@ for (Perf_meas in Perf_meas_sel[5:6])
 #   out-of-sample MSE, outperforming all competing designs.
 #
 # - It is followed, in order, by the non-parametric MSE-DFA (orange),
-#   the S-only design (yellow), and the T-only design (dark blue).
+#   the S-only design (yellow), the T-only design (dark blue) and the mixed DFA (green).
 #
 # - Placing weight on S and T (green) incurs disproportionately
 #   large losses in A (and thus MSE).
@@ -978,10 +865,11 @@ for (Perf_meas in Perf_meas_sel[5:6])
 # ==============================================================================
 
 
-
-# Comparison filter outputs
+#########################################################################################
+# Compare filter filter outputs
+#########################################################################################
 # Best MSE (red) vs. customized mixed (green)
-# Customized is smoother and faster
+# Select any of the three DGP
 DGP<-2
 par(mfrow=c(1,1))
 amp_shift_mat_sim<-for_sim_obj$amp_shift_mat_sim
@@ -1011,6 +899,7 @@ axis(1,at=c(1,rep(0,6))+as.integer((0:6)*(enf-anf)/6),
 axis(2)
 box()
 
+# Customized is smoother and faster
 
 
 
@@ -1018,7 +907,7 @@ box()
 
 
 # ==============================================================================
-# Example 6: Bivariate Leading Indicator vs. Univariate Customized DFA
+# Example 5: Bivariate Leading Indicator vs. Univariate Customized DFA
 # ==============================================================================
 #
 # Background:
@@ -1055,9 +944,9 @@ a1 <- 0.08
 anzsim <- 500
 
 # Customization settings: MSE baseline and `mix': 
-# Emphasize T (lambda=20) and S (eta=0.5)
-lambda_vec <- c(0, 20)
-eta_vec    <- c(0, 0.5)
+# Emphasize T (lambda=20) and S (eta=1)
+lambda_dfa <- c(0, 20)
+eta_dfa    <- c(0, 1)
 
 
 # Target filter: typical target in business-cycle analysis with monthly data
@@ -1082,7 +971,7 @@ i1 <- i2 <- FALSE
 
 # MDFA baseline: MSE design
 #   These hyperparameters are applied to bivariate design
-#   The above lambda_vec and eta_vec are applied to univariate DFA
+#   The above lambda_dfa and eta_dfa are applied to univariate DFA
 lambda_mdfa <- eta_mdfa <- 0
 
 # Speed-up flag: omits non-essential MDFA statistics (does not affect results)
@@ -1090,8 +979,10 @@ troikaner <- FALSE
 
 # --- Run the Competition ---
 # Univariate MSE and customized DFA vs. bivariate leading indicator
+# The function mdfa_mse_leading_indicator_vs_dfa_customized() generates artificial series for univariate and bivariate designs,
+# it applies the generic mdfa_analytic() function, filters the data
 cust_leading_obj <- mdfa_mse_leading_indicator_vs_dfa_customized(
-  anzsim, a1, cutoff, L, lambda_vec, eta_vec,
+  anzsim, a1, cutoff, L, lambda_dfa, eta_dfa,
   len1, len, i1, i2, Lag, lambda_mdfa, eta_mdfa, troikaner
 )
 
@@ -1129,7 +1020,7 @@ boxplot(
     cust_leading_obj$perf_in_sample[, 1, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("Curvature in-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1142,7 +1033,7 @@ boxplot(
     cust_leading_obj$perf_out_sample[, 1, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("Curvature out-of-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1150,8 +1041,7 @@ boxplot(
 )
 
 # ==============================================================================
-# Outcomes (assuming a1 = 0.08: near white noise, typical of log-returns
-#           of positive economic time series):
+# Outcomes Smoothness
 #
 # Smoothness / Curvature (out-of-sample, right panels):
 #
@@ -1170,7 +1060,7 @@ boxplot(
     cust_leading_obj$perf_in_sample[, 2, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("Peak-Correlation in-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1183,7 +1073,7 @@ boxplot(
     cust_leading_obj$perf_out_sample[, 2, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("Peak-Correlation out-of-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1192,7 +1082,7 @@ boxplot(
 
 
 # ==============================================================================
-# Outcomes
+# Outcomes Timeliness
 #
 # Timeliness / Lag at Peak Correlation:
 #
@@ -1217,7 +1107,7 @@ boxplot(
     cust_leading_obj$perf_in_sample[, 3, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("MSE in-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1230,7 +1120,7 @@ boxplot(
     cust_leading_obj$perf_out_sample[, 3, 3]
   ),
   outline = TRUE,
-  names   = c(paste("DFA(", lambda_vec, ",", eta_vec, ")", sep = ""),
+  names   = c(paste("DFA(", lambda_dfa, ",", eta_dfa, ")", sep = ""),
               "MDFA-MSE Leading Indicator"),
   main    = paste("MSE out-of-sample, a1 =", a1),
   cex.axis = 0.8,
@@ -1238,7 +1128,7 @@ boxplot(
 )
 
 # ==============================================================================
-# Outcomes
+# Outcomes MSE
 #
 # - The bivariate MSE predictor (brown) achieves the lowest MSE, as expected.
 #
@@ -1284,65 +1174,298 @@ box()
 
 
 
+# ==============================================================================
+# Example 6: Multivariate Customization 
+# Extension of Example 5 — Customization of the Bivariate Design
+# ==============================================================================
+# Novelty: introduction of a customized multivariate (bivariate) DFA design.
+#
+# This example replicates the setup of Example 5 but adds a customized
+# bivariate filter as an additional contender. The four competing designs are:
+#   (i)   Univariate MSE-DFA          — pure accuracy benchmark
+#   (ii)  Bivariate MSE-DFA           — exploits a leading indicator
+#   (iii) Univariate customized DFA   — emphasizes S and T
+#   (iv)  Bivariate customized DFA    — combines (ii) and (iii)  <-- new
+#
+# Note: the settings from Example 5 must be loaded prior to running this
+#       section, if not already done.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Customization grid: lambda (smoothness) and eta (timeliness) parameters
+# applied to both the univariate DFA and the bivariate MDFA designs.
+# Two configurations are considered per design:
+#   - Pure MSE:          lambda = 0,  eta = 0  (no smoothness or timeliness penalty)
+#   - Emphasize S and T: 
+#       DFA: lambda = 20, eta = 1  (strong smoothness and timeliness penalty)
+#       MDFA: lambda = 20, eta = 0.7  (strong smoothness and timeliness penalty)
+# Note: the customization mix must be chosen differently for MDFA and DFA 
+# MDFA: lambda_mdfa and eta_mdfa
+# DFA:  lambda_dfa and eta_dfa from previous example 5
+# ------------------------------------------------------------------------------
+lambda_mdfa <- c(0, 100)
+eta_mdfa    <- c(0, 0.6)
+
+# Display the customization grid as a labelled table for clarity
+table_mat           <- rbind(lambda_mdfa, eta_mdfa,lambda_dfa,eta_dfa)
+colnames(table_mat) <- c("MSE", "Emphasize S and T")
+rownames(table_mat) <- c("MDFA lambda", "MDFA eta","DFA lambda","DFA eta")
+table_mat
 
 
+# ==============================================================================
+# --- Simulation Settings as in example 5
+# ==============================================================================
+
+# AR(1) coefficient of the data-generating process.
+# A value close to zero reflects near white noise behavior —
+# a typical assumption for differenced (log-return) economic time series.
+a1 <- 0.08
+
+# Number of Monte Carlo simulation replications
+anzsim <- 500
+
+# --- Target Filter ------------------------------------------------------------
+# Ideal low-pass filter: standard target in business-cycle analysis
+# with monthly data. Removes all components with duration < 2 years
+# (i.e., periodicity < 2 * 12 months).
+periodicity <- 12
+cutoff      <- pi / periodicity
+
+# Full sample length used to apply the symmetric ideal low-pass (approximation)
+len1 <- 3000
+
+# In-sample span for spectrum estimation via DFT: 20 years of monthly data
+len <- 240
+
+# Filter length: set to twice the periodicity (standard choice; see tutorials)
+L <- 2 * periodicity
+
+# Forecast horizon: Lag = 0 corresponds to a nowcast (no lead required)
+Lag <- 0
+
+# Stationarity assumption: no unit-root constraints imposed on filter coefficients
+i1 <- i2 <- FALSE
 
 
+# Speed-up flag: suppresses non-essential MDFA diagnostics without affecting results
+troikaner <- FALSE
+
+# ==============================================================================
+# --- Run the Competition ------------------------------------------------------
+# Compares univariate MSE-DFA and customized DFA against their bivariate
+# counterparts (with and without leading indicator customization).
+# Performance metrics are computed in- and out-of-sample across all replicates.
+# ==============================================================================
+cust_leading_obj<-mdfa_mse_leading_indicator_vs_dfa_customized(anzsim,a1,cutoff,L,
+          lambda_dfa,eta_dfa,len1,len,i1,i2,Lag,lambda_mdfa,eta_mdfa,troikaner)  
 
 
+# Assign a distinct color to each competing design for visual traceability
+colo <- rainbow(length(lambda_mdfa) + length(lambda_dfa))
 
+par(mfrow = c(1, 2))
 
+# ==============================================================================
+# --- Performance Plots --------------------------------------------------------
+# ==============================================================================
 
+# --- 1. Smoothness / Curvature ------------------------------------------------
 
-
-#---------------------------------------------------------------------------------------------------------
-# Example 7: same as example 4 but we now allow for customization of the bivariate design
-# Contenders in this competition: uni and bivariate MSE as well as uni and bivariate customized (the latter is new)
-
-
-# Use the same settings as above but add a 'best-mix' customization for the bivariate filter
-#   You might have to load the settings in the previous example in order to run this piece (if not done yet)
-lambda_mdfa<-c(0,30)
-eta_mdfa<-c(0,1.)
-
-
-cust_leading_obj<-mdfa_mse_leading_indicator_vs_dfa_customized(anzsim,a1,
-                                                               cutoff,L,lambda_vec,eta_vec,len1,len,i1,i2,Lag,lambda_mdfa,eta_mdfa,troikaner)  
-
-
-colo<-rainbow(length(lambda_mdfa)+length(lambda_vec))
-par(mfrow=c(1,2))
-# 1. Curvature
 #   in-sample
-boxplot(list(cust_leading_obj$perf_in_sample[,1,1],cust_leading_obj$perf_in_sample[,1,2],cust_leading_obj$perf_in_sample[,1,3],cust_leading_obj$perf_in_sample[,1,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Curvature in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_in_sample[,1,1],cust_leading_obj$perf_in_sample[,1,2],cust_leading_obj$perf_in_sample[,1,3],cust_leading_obj$perf_in_sample[,1,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Curvature in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 #   out-of-sample
-boxplot(list(cust_leading_obj$perf_out_sample[,1,1],cust_leading_obj$perf_out_sample[,1,2],cust_leading_obj$perf_out_sample[,1,3],cust_leading_obj$perf_out_sample[,1,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Curvature out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_out_sample[,1,1],cust_leading_obj$perf_out_sample[,1,2],cust_leading_obj$perf_out_sample[,1,3],cust_leading_obj$perf_out_sample[,1,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Curvature out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 
 
+# --- 2. Timeliness / Peak Correlation -----------------------------------------
 
-# 2. Peak correlation 
 #   in-sample
-boxplot(list(cust_leading_obj$perf_in_sample[,2,1],cust_leading_obj$perf_in_sample[,2,2],cust_leading_obj$perf_in_sample[,2,3],cust_leading_obj$perf_in_sample[,2,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Peak Correlation in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_in_sample[,2,1],cust_leading_obj$perf_in_sample[,2,2],cust_leading_obj$perf_in_sample[,2,3],cust_leading_obj$perf_in_sample[,2,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Peak Correlation in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 #   out-of-sample 
-boxplot(list(cust_leading_obj$perf_out_sample[,2,1],cust_leading_obj$perf_out_sample[,2,2],cust_leading_obj$perf_out_sample[,2,3],cust_leading_obj$perf_out_sample[,2,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Peak Correlation out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_out_sample[,2,1],cust_leading_obj$perf_out_sample[,2,2],cust_leading_obj$perf_out_sample[,2,3],cust_leading_obj$perf_out_sample[,2,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("Peak Correlation out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 
+# --- 3. MSE --------------------------------------------------------
 
-# 3. MSE 
 #   in sample
-boxplot(list(cust_leading_obj$perf_in_sample[,3,1],cust_leading_obj$perf_in_sample[,3,2],cust_leading_obj$perf_in_sample[,3,3],cust_leading_obj$perf_in_sample[,3,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("MSE in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_in_sample[,3,1],cust_leading_obj$perf_in_sample[,3,2],cust_leading_obj$perf_in_sample[,3,3],cust_leading_obj$perf_in_sample[,3,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("MSE in-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 #   out-of-sample 
-boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sample[,3,2],cust_leading_obj$perf_out_sample[,3,3],cust_leading_obj$perf_out_sample[,3,4]),outline=T,names=c(paste("DFA(",lambda_vec,",",eta_vec,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("MSE out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
+boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sample[,3,2],cust_leading_obj$perf_out_sample[,3,3],cust_leading_obj$perf_out_sample[,3,4]),outline=T,names=c(paste("DFA(",lambda_dfa,",",eta_dfa,")",sep=""),paste("MDFA(",lambda_mdfa,",",eta_mdfa,")",sep="")),main=paste("MSE out-of-sample, a1=",a1,sep=""),cex.axis=0.8,col=colo)
 
-# Multivariate customized 
-#   outperforms all other contenders with respect to lead and curvature out-of-sample (though outperformance with respect to customized DFA is modest)
-#   outperforms customized univariate in terms of MSE out-of-sample
-#   is outperformed in terms of MSE by both MSE-designs out-of-sample
-# Conclusion: 
-#   1. Performances in terms of Smoothess (smaller curvature) and Timeliness (smaller lag at peak correlation) are
-#     obtained mainly by design, i.e. by the art of optimizing the relevant features of the filter, rather than by adding 
-#     a (cheating...) leading time series.
-#   2. MSE-performances may degrade substantially as a side-effect of addressing S and T at the expense of A
-#     but some users (me included) really don't care about that collateral damage to MSE
+
+# ==============================================================================
+# Out-of-Sample Performance Summary (Right Panels):
+#
+# 1. MSE Performance:
+#    - Bivariate MSE-MDFA (cyan) achieves the lowest MSE,
+#      followed by MSE-DFA (red), with customized MDFA (violet) and
+#      customized DFA (green) performing comparably at a lower level (larger MSE).
+#
+# 2. Timeliness (Peak Correlation) & Smoothness (Curvature):
+#    - Bivariate customized MDFA (violet) outperforms all competing
+#      designs across both criteria simultaneously.
+#
+# 3. Multivariate vs. Univariate Customization:
+#    - At similar (or marginally better) MSE levels, MDFA
+#      consistently dominates DFA in terms of Timeliness (T)
+#      and Smoothness (S).
+#    - This simultaneous improvement in both T and S — while
+#      maintaining comparable MSE — would not be achievable
+#      under a univariate design due to efficient frontier
+#      constraints.
+# ==============================================================================
+
+
+
+# ==============================================================================
+# WRAP-UP
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Decomposition of the MSE Norm
+# ------------------------------------------------------------------------------
+# The MSE norm decomposes into four error components — Accuracy (A), Timeliness (T),
+# Smoothness (S), and Residual (R) — each weighted equally in the standard MSE criterion:
+#
+#   - S (Smoothness):   Measures noise suppression by the one-sided filter in the stopband.
+#   - T (Timeliness):   Measures the phase shift (delay) of the one-sided filter in the passband.
+#   - A (Accuracy):     Measures the level-tracking ability of the one-sided filter in the passband.
+#   - R (Residual):     Captures the contribution of phase shift in the stopband; in practice,
+#                       this component vanishes because the target filter has no energy in the stopband.
+#
+# The remaining components A, T, and S reflect the fundamental tension between optimizing
+# amplitude (A and S) and phase (T) functions — recall Tutorial 2, Example 5:
+#   - Amplitude and phase fits cannot be improved simultaneously and arbitrarily well
+#     across the entire frequency band.
+
+# ------------------------------------------------------------------------------
+# The ATS Trilemma
+# ------------------------------------------------------------------------------
+# The interplay among A, T, and S gives rise to a trilemma with the following properties:
+#
+#   - Emphasizing any single component (assigning a larger weight exclusively to A, T, or S)
+#     inflates the remaining two components as well as the overall MSE.
+#   - Emphasizing any combination of two components inflates the remaining one
+#     disproportionately, along with overall MSE.
+#   - Emphasizing S and T jointly (at the cost of A) simultaneously improves:
+#       * Amplitude fit in the stopband (noise suppression, captured by S), and
+#       * Phase fit in the passband (reduced shift, captured by T),
+#     at the cost of amplitude accuracy in the passband (level-tracking, captured by A).
+#   - Therefore, amplitude and phase fits can be improved simultaneously — but only
+#     on complementary parts of the frequency band: the stopband (amplitude) and
+#     the passband (phase).
+#
+# Classic econometric approaches are fundamentally incapable of addressing this trilemma:
+#   - The classic maximum likelihood framework targets a one-step-ahead forecast,
+#     which corresponds to an allpass filter — there is no frequency-band split into
+#     pass- and stopbands, and hence S (Smoothness) does not exist in that framework.
+
+# ------------------------------------------------------------------------------
+# Comparison with Classic Econometric / Time Series Approaches
+# ------------------------------------------------------------------------------
+# Classic one-step-ahead mean-square forecasting decomposes the MSE norm into
+# A and T only (S is absent), reducing the problem to a dilemma rather than a trilemma.
+# Classic econometric approaches are therefore structurally incapable of addressing
+# the richer optimization problem offered by the ATS framework.
+#
+# The DFA generalizes classic approaches in the following ways:
+#   1. The DFA can replicate classic one-step-ahead allpass approaches (see Tutorial 1).
+#   2. By accommodating more general targets (lowpass, bandpass), the DFA spans a
+#      trilemma across the pass- and stopbands of the target filter.
+#   3. The trilemma enables simultaneous improvements in amplitude AND phase fits
+#      within relevant frequency bands.
+
+# ------------------------------------------------------------------------------
+# Interpretation of S and T via Classical Statistics
+# ------------------------------------------------------------------------------
+# S (Smoothness) is closely related to the classic curvature statistic
+# (mean-square second-order differences), which quantifies the smoothness of
+# the one-sided filter output.
+#
+# T (Timeliness) is closely related to the classic peak-correlation concept,
+# which identifies the shift that maximizes the correlation between the outputs
+# of the one-sided filter and the target filter.
+#
+# Since S and T can be improved simultaneously within the ATS trilemma (at the
+# cost of A and overall MSE), it follows that curvature and lag-at-peak-correlation
+# can also be improved simultaneously:
+#   - Simulation studies confirm this claim both in-sample and out-of-sample.
+#   - Improvements in curvature and lag at peak-correlation are substantial,
+#     not merely marginal.
+#   - However, Accuracy (A) and MSE degrade as a consequence:
+#       * This degradation is primarily due to amplitude shrinkage in the passband.
+#       * Shrinkage can be partially remedied by simple rescaling of the filter output.
+#       * Crucially, such rescaling does not affect the scale-invariant measures of
+#         curvature and lag at peak-correlation — meaning part of the A/MSE loss
+#         can be recovered without undermining the timeliness or smoothness gains.
+
+# ------------------------------------------------------------------------------
+# Selecting the Customization Parameters Lambda and Eta
+# ------------------------------------------------------------------------------
+# Unlike regularization (where 'optimal' weights can be derived via smallest TIC,
+# see Tutorial 5), the selection of lambda (Timeliness weight) and eta (Smoothness
+# weight) does not admit a universally optimal solution:
+#
+#   - As the term 'customization' implies, the choice of lambda/eta depends
+#     primarily — indeed solely — on the user and the purpose of the analysis.
+#   - The utility of any particular lambda/eta configuration reflects the
+#     priorities and objectives of the practitioner, not an objective criterion.
+
+# ------------------------------------------------------------------------------
+# Summary of Empirical Findings
+# ------------------------------------------------------------------------------
+#   - MSE-optimal designs outperform customized designs in- and out-of-sample
+#     with respect to MSE, as expected by construction.
+#   - The bivariate (leading indicator) MSE design achieves the lowest MSE among
+#     all competing designs, both in-sample and out-of-sample (assuming overfitting
+#     is not excessively severe).
+#   - A suitably customized univariate DFA filter can outperform ALL MSE-based designs
+#     simultaneously in terms of curvature and lag-at-peak-correlation, both
+#     in-sample and out-of-sample:
+#       1. It outperforms the best possible univariate MSE approach, even under the
+#          assumption of known data-generating process.
+#       2. More strikingly, it outperforms the bivariate MSE leading indicator design
+#          — confirming that the customization gains in both T and S can be substantial
+#          and simultaneous.
+
+# ------------------------------------------------------------------------------
+# Cautionary Remarks: Avoiding Misinterpretation
+# ------------------------------------------------------------------------------
+# All reported performance measures are aggregates over stochastic realizations.
+# Improved S and T (or equivalently, improved curvature and peak-correlation lag)
+# reflect improvements 'in the mean' — not deterministic guarantees:
+#
+#   - At individual turning points, the actual lead may be larger or smaller than
+#     implied by the aggregate peak-correlation figure; variation is inherent.
+#   - At individual time points, the output may be less (or more) smooth than
+#     the aggregate curvature statistic suggests.
+#   - Note: usage of a leading indicator in the bivariate design introduces greater
+#     regularity — the anticipation (by exactly one time step) is more systematic
+#     and less random than in the customized univariate design.
+#
+# Applying a customized filter to white noise cannot and does not improve
+# inferential ability about the (completely random) future:
+#   - Neither forecasting accuracy nor any derived statistic (e.g., trading
+#     performance based on filter output sign) can be improved for iid processes.
+#   - In the mean, the customized filter will cross zero earlier than the MSE filter —
+#     this will indeed be observed empirically.
+#   - However, for a truly iid process this earlier crossing is entirely spurious:
+#     no utility can be derived from it by any rational user.
+#   - In contrast, the bivariate leading indicator design would yield genuine trading
+#     performance gains for iid data, due to the effective non-causality of the design.
+#
+# Nevertheless, real-world financial markets offer a more nuanced picture:
+#   - Market liquidity is finite, and price adjustments are not instantaneous.
+#   - A substantial share of market participants rely on classic ('slow') moving-average
+#     filters, creating structural opportunities for earlier-responding designs.
+#   - In such contexts, improved timing from customized filters may deliver real value.
+#   - That said, experience suggests that faster is not always better.
+#   - Ultimately, the ATS trilemma provides a principled framework for navigating
+#     these trade-offs — the final judgment rests with the user.
+# ==============================================================================
+
+
+
 
 
 
