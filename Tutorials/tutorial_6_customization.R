@@ -1331,7 +1331,8 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 #   - T (Timeliness):   Measures the phase shift (delay) of the one-sided filter in the passband.
 #   - A (Accuracy):     Measures the level-tracking ability of the one-sided filter in the passband.
 #   - R (Residual):     Captures the contribution of phase shift in the stopband; in practice,
-#                       this component vanishes because the target filter has no energy in the stopband.
+#                       this component is negligible or vanishes because the target filter has weak 
+#                       (or none at all) energy in the stopband.
 #
 # The remaining components A, T, and S reflect the fundamental tension between optimizing
 # amplitude (A and S) and phase (T) functions — recall Tutorial 2, Example 5:
@@ -1343,7 +1344,8 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 # ------------------------------------------------------------------------------
 # The interplay among A, T, and S gives rise to a trilemma with the following properties:
 #
-#   - Emphasizing any single component (assigning a larger weight exclusively to A, T, or S)
+#   - In a MDFA-optimized design, Emphasizing any single component 
+#     (assigning a larger weight exclusively to A, T, or S)
 #     inflates the remaining two components as well as the overall MSE.
 #   - Emphasizing any combination of two components inflates the remaining one
 #     disproportionately, along with overall MSE.
@@ -1414,7 +1416,7 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 # ------------------------------------------------------------------------------
 # Summary of Empirical Findings
 # ------------------------------------------------------------------------------
-#   - MSE-optimal designs outperform customized designs in- and out-of-sample
+#   - MSE-optimal designs (based on the true model) outperform customized designs in- and out-of-sample
 #     with respect to MSE, as expected by construction.
 #   - The bivariate (leading indicator) MSE design achieves the lowest MSE among
 #     all competing designs, both in-sample and out-of-sample (assuming overfitting
@@ -1466,77 +1468,6 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 
 
 
-
-
-
-
-
-#---------------------------------------------------------------------------------------------------------------------------------
-# Wrap-up
-# -The MSE-norm can be split into four error components, Accuracy, Timeliness, Smoothness and Residual, which are weighted equally in the original MSE norm
-#   -S measures the noise suppression by the one-sided filter in the stopband
-#   -T measures the shift (delay) of the one-sided filter in the passband
-#   -A measures the level-tracking of the one-sided filter in the passband
-#   -R measures the contribution of the shift in the stopband: in our applications this component vanishes invariably (because the target vanishes in the stopband)
-#   -The remaining A, T and S account for the dilemma of optimizing amplitude (A and S) as well as phase (T) functions, recall tutorial 2 example 5
-#     -One cannot improve both amplitude and phase functions fits simultaneously and arbitrarily well across the full frequency-band
-# -Playing with the trilemma
-#   -Emphasizing any (A-, T- or S-) error component (assigning unilaterally a larger weight to that component uniquely) inflates the other ones as well as the sum (i.e. MSE)
-#   -Emphasizing either combination of two components (assigning larger weights to these two components) inflates overprortionally the remaining one as well as MSE
-#   -Emphasizing S and T (at costs of A) improves simultaneously the amplitude (noise suppression in stop-band) as well as the phase (shift in the passband)
-#      at cost of amplitude in passband (A or Accuracy-component: accounts for level-tracking ability of the one-sided filter) 
-#   -Therefore amplitude and phase function fits can be improved simultaneously on parts of the frequency band: the stop-band (amplitude) and the passband (phase)   
-#   -Classic econometric approaches are immanently incapable of tackling that problem because the classic maximum likelihood approach emphasizes a 
-#     (one-step ahead) forecast problem; the forecasting target is an allpass filter i.e. there is no split of the frequency-band into pass- and stopbands
-#     or, stated otherwise, S (smoothness) does not exist.
-# -A comparison with classic econometric/time series approaches
-#   -Classic one-step ahead mean-square forecasting decomposes the MSE-norm into A and T only (there is no S): classic econometric approaches emphasize a 
-#     dilemma; they are by design incapable of addressing the proposed trilemma
-#   -By tracking arbitrary targets (see tutorial 2) the DFA is more general than classic econometric approaches
-#     1. DFA can replicate classic (one-steap ahead allpass) approaches, see tutorial 1
-#     2. By allowing more generic targets (lowpass, bandpass) a trilemma can be spanned upon pass- and stop-bands of the target
-#     3. The trilemma enables to address amplitude AND phase fits simultaneously in relevant frequency-bands
-# -Interpretation of S and T
-#   -Smoothness is intimately related to the classic curvature statistic (mean-square second order differences) which measures ... well... the curvature (i.e. smoothness) of the filter output
-#   -Timeliness is intimately related to the classic peak-correlation concept (shift outputs of one-sided and of target filters until correlation is maximized)
-#   -Since S and T can be improved simulatenously in the ATS-trilemma, at costs of A and overall MSE, we conclude that curvature and lag (at peak-correlation) 
-#     can be improved simultenously, too.
-#   -Our simulation studies above confirm this claim, in-sample as well as out-of-sample
-#     -Curvature as well as lag at peak-correlation can be improved both substantially i.e. improvements are not marginal
-#     -But A(ccuracy) and MSE-performances degrade: 
-#       -This loss is mainly due to shrinkage of the amplitude function in the passband 
-#       -The shrinkage could be remedied easily, at least to some extent, by re-scaling of the filter output. 
-#       -Stated otherwise: part of the loss in A- and MSE-performances could be overcome by a very simple transformation which does not affect 
-#         the scale-invariant (relative) curvature and lag at peak-correlation measures
-# -Selecting lambda,eta
-#   -In contrast to the previous regularization feature, for which 'best' weights could be derived in terms of smallest tic (see tutorial 5), 
-#     customization of a filter by means of lambda (Timeliness) and eta (Smoothness) cannot claim uncontroversial 'optimality'
-#   -As suggested by its naming, customization (the selection of lambda/eta) depends mainly (solely) on the user or, more precisely, on the purpose of the analysis
-#   -The 'utility' of a particular lambda/eta setting belies in the mindset of its user
-# -Summary of empirical studies
-#   -MSE designs outperform customized designs in- and out-of-sample, as expected
-#   -The bivariate leading indicator MSE-design outperforms all other contenders in-sample and out-of-sample in terms of MSE (assuming overfitting is not excessively heavy)
-#   -A univariate suitably customized DFA filter can outperform all MSE-designs in terms of curvature and (lag at) peak-correlation simultaneously in-sample and out-of-sample
-#     1. the best possible univariate MSE-approach assuming knowledge of the true data-generating process is outperformed
-#     2. more surprisingly, perhaps, the bivariate MSE leading indicator design is outperformed: this last result confirms that gains can be substantial in both dimensions at once
-
-
-
-# -Cautionary words: avoid confusions
-#   -All reported measures are aggregates of stochastic events
-#   -Improved S and T or, equivalently, improved curvature and peak correlation imply that the corresponding filter output improves 'in the mean'
-#     -At some turning-points the lead can be larger or smaller (than indicated by the aggregate peak-correlation number): there is variation (no determinism)
-#     -Sometimes the output is less (or more) smooth than assumed by the aggregate curvature number
-#     -Note that usage of a leading indicator in the bivariate design leads to 'more determinism' i.e. the anticipation (by exactly one time point) is less random or more regular than for the customized univariate design
-#   -Applying a customized filter to white noise can (and does) not improve our inferential ability about the (completely random) future
-#     -Neither forecasting nor any derived statistic (for example trading performances based on the sign of the filter output) can be improved
-#     -In the mean, the customized filter will cross the zero line earlier than the MSE-filter: this will indeed be observed
-#     -But this feature would be completely 'useless' in the context of an iid process (independent identically distributed): no utility could be derived for the user
-#     -In contrast, usage of the leading indicator in the bivariate design would have lead to substantial trading performance (due to effective non-causality of the design) 
-#   -But all is not lost... in real-world markets liquidity is finite (adjustments are not immediate) and a substantial share of traders are relying on classic ('slow') MA-filters. 
-#     -In such a context, improved timing by customized designs could deliver 
-#     -However, experience suggests that faster is not always better
-#     -In any case, the ATS-trilemma enables to trigger whatever is felt judicious: now it's up to the user...
 
 
 
