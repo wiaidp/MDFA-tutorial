@@ -57,22 +57,23 @@ cutoff,L,L_sym,a1,mba,scaled_ATS,estim_MBA,Lag,i1,i2)
   weight_func_best<-rep(1,K+1)/(abs(1-a1*exp(1.i*omega_k))^2*2*pi)               #a1<--0
 #
 # Estimation loop for all eta/lambda values
+  lin_eta<-T
   for (i in 0:(dim(amp)[2]-1))         #i<-0
   {
     if (i==0)
     {
       if (mba&!estim_MBA)
       {
-        dfa<-dfa_analytic(L,0,weight_func,Lag,Gamma,0,cutoff,i1,i2)
+        dfa<-dfa_analytic(L,0,weight_func,Lag,Gamma,0,cutoff,i1,i2,lin_eta)
         weight_func_p<-weight_func
       } else
       {
-        dfa<-dfa_analytic(L,0,weight_func_best,Lag,Gamma,0,cutoff,i1,i2)
+        dfa<-dfa_analytic(L,0,weight_func_best,Lag,Gamma,0,cutoff,i1,i2,lin_eta)
         weight_func_p<-weight_func_best
       }
     } else
     {
-      dfa<-dfa_analytic(L,lambda_vec[i],weight_func,Lag,Gamma,eta_vec[i],cutoff,i1,i2)#ts.plot(weight_func)
+      dfa<-dfa_analytic(L,lambda_vec[i],weight_func,Lag,Gamma,eta_vec[i],cutoff,i1,i2,lin_eta)#ts.plot(weight_func)
       weight_func_p<-weight_func
     }
 
@@ -411,7 +412,7 @@ mdfa_mse_leading_indicator_vs_dfa_customized<-function(anzsim,a1,cutoff,L,lambda
 
 # MSE-settings for DFA and MDFA
   d<-0
-  lin_eta<-F
+  lin_eta<-T
   weight_constraint<-rep(1/(ncol(weight_func)-1),ncol(weight_func)-1)
   lambda_cross<-lambda_smooth<-0
   lambda_decay<-c(0,0)
@@ -476,7 +477,7 @@ mdfa_mse_leading_indicator_vs_dfa_customized<-function(anzsim,a1,cutoff,L,lambda
 # Estimate customized coefficients
     for (i_cust in 1:length(lambda_vec))#i_cust<-1
     {
-      dfa<-dfa_analytic(L,lambda_vec[i_cust],periodogram,Lag,Gamma,eta_vec[i_cust],cutoff,i1,i2)
+      dfa<-dfa_analytic(L,lambda_vec[i_cust],periodogram,Lag,Gamma,eta_vec[i_cust],cutoff,i1,i2,lin_eta)
       if (i_cust==1)
       {
         b_cust<-dfa$b

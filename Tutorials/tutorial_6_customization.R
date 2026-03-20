@@ -598,7 +598,8 @@ a_vec <- c(0.9, 0.08, -0.9)
 #   lambda controls timeliness emphasis
 #   eta    controls smoothness emphasis
 lambda_vec <- c(0,   0,   30,  500)
-eta_vec    <- c(0,   1.5, 1.5,   0.3)
+#eta_vec    <- c(0,   1.5, 1.5,   0.3)
+eta_vec    <- c(0,   10, 10,   0.)
 
 # Display design parameter table for reference
 table_mat          <- rbind(lambda_vec, eta_vec)
@@ -708,7 +709,7 @@ for (Perf_meas in Perf_meas_sel[1:4])
 #
 # 2. SMOOTH design / yellow (high eta, emphasizes S):
 #      - Best curvature among all designs (top-right panel).
-#      - Largest loss in timeliness: median lag ≈ 4 (bottom-right panel).
+#      - Largest loss in timeliness: median lag ≈ 2 (bottom-right panel).
 #
 # 3. FAST design / blue (high lambda, emphasizes T):
 #      - Best peak-correlation among all designs (bottom-right panel).
@@ -725,7 +726,9 @@ for (Perf_meas in Perf_meas_sel[1:4])
 #      standpoint, underscoring the added value of the ATS trilemma framework.
 #      The result is further strengthened by the fact that the underlying
 #      predictor is non-parametric — a setting which favours flexibility
-#      at the cost of estimation efficiency.
+#      at the cost of estimation efficiency. Alternatively, the DFA could rely 
+#      on a model-based spectral density, based on the true or estimated model, 
+#      see tutorial 3 (not shown).
 # ==============================================================================
 
   
@@ -929,8 +932,8 @@ box()
 #   - The function mdfa_mse_leading_indicator_vs_dfa_customized sets up the
 #     competition by comparing three designs:
 #       1. Univariate DFA-MSE:          lambda = 0,  eta = 0  (baseline)
-#       2. Univariate 'best-mix' DFA:   lambda = 30, eta = 1  (customized)
-#       3. Bivariate MSE design:        incorporates a noisy leading indicator
+#       2. Univariate 'best-mix' DFA:   lambda = 20, eta = 1  (customized)
+#       3. Bivariate MSE design:        lambda=eta=0, incorporates a noisy leading indicator
 # ==============================================================================
 
 
@@ -942,12 +945,38 @@ box()
 a1 <- 0.08
 
 # Number of simulation replications
-anzsim <- 500
+anzsim <- 100
 
 # Customization settings: MSE baseline and `mix': 
-# Emphasize T (lambda=20) and S (eta=1)
 lambda_dfa <- c(0, 20)
 eta_dfa    <- c(0, 1)
+# Display design parameter table for reference
+table_mat          <- rbind(lambda_dfa, eta_dfa)
+colnames(table_mat) <- c("MSE",  "Emphasize S and T")
+rownames(table_mat) <- c("lambda", "eta")
+table_mat
+
+# ------------------------------------------------------------------------------
+# Note on Customization Intent and Parameter Selection:
+# ------------------------------------------------------------------------------
+# The primary goal of this example is to illustrate that a suitably customized
+# univariate DFA can outperform the bivariate leading indicator MSE-MDFA design
+# in terms of both:
+#   - S (Smoothness), as measured by the curvature statistic, and
+#   - T (Timeliness), as measured by the lag at peak correlation.
+#
+# However, the lambda/eta values used here are largely ad hoc and were not
+# systematically optimized. Alternative parameter configurations — for instance,
+# larger values of eta and/or lambda — could potentially yield further gains
+# in S and T beyond those reported here.
+#
+# This comes with an important caveat:
+#   - Pushing lambda and eta too aggressively would induce disproportionate
+#     losses in Accuracy (A), and consequently inflate the overall MSE.
+#   - The reported configuration therefore reflects a pragmatic balance:
+#     sufficient customization to demonstrate the S and T advantage, without
+#     incurring excessive degradation in A (amplitude accuracy in passband).
+# ------------------------------------------------------------------------------
 
 
 # Target filter: typical target in business-cycle analysis with monthly data
@@ -1132,9 +1161,10 @@ boxplot(
 # Outcomes MSE
 #
 # - The bivariate MSE predictor (brown) achieves the lowest MSE, as expected.
+#   However, the difference of in-sample and out-of-sample performances suggests some overfitting.
 #
 # - The customized DFA design (green) yields the worst overall performance,
-#   incurring disproportionate losses in both A and MSE — a consequence of
+#   incurring disproportionate losses in both A and overall MSE — a consequence of
 #   placing excessive weight on S and T at the expense of accuracy.
 #
 # ==============================================================================
@@ -1179,12 +1209,12 @@ box()
 # Example 6: Multivariate Customization 
 # Extension of Example 5 — Customization of the Bivariate Design
 # ==============================================================================
-# Novelty: introduction of a customized multivariate (bivariate) DFA design.
+# Novelty: introduction of a customized multivariate (bivariate) MDFA design.
 #
 # This example replicates the setup of Example 5 but adds a customized
 # bivariate filter as an additional contender. The four competing designs are:
-#   (i)   Univariate MSE-DFA          — pure accuracy benchmark
-#   (ii)  Bivariate MSE-DFA           — exploits a leading indicator
+#   (i)   Univariate MSE-DFA          — MSE univariate
+#   (ii)  Bivariate MSE-DFA           — MSE: exploits a leading indicator
 #   (iii) Univariate customized DFA   — emphasizes S and T
 #   (iv)  Bivariate customized DFA    — combines (ii) and (iii)  <-- new
 #
@@ -1203,8 +1233,8 @@ box()
 #        -> Standard MSE criterion; no smoothness or timeliness penalty imposed.
 #
 #   2. Emphasized S and T (joint smoothness and timeliness customization):
-#        DFA:  lambda = 20, eta = 1.0  -> Strong smoothness and timeliness penalty
-#        MDFA: lambda = 100, eta = 0.6  -> Strong smoothness and timeliness penalty
+#        DFA:  lambda = 20, eta = 1.0  (from example 5) -> Strong smoothness and timeliness penalty
+#        MDFA: lambda = 100, eta = 10  -> Strong smoothness and timeliness penalty
 #        -> Note: the optimal customization mix differs between  DFA and MDFA,
 #           reflecting differences in their internal parameterization (see below).
 #
@@ -1212,17 +1242,30 @@ box()
 #   - MDFA: lambda_mdfa, eta_mdfa  (used with the MDFA wrapper mdfa_cust() function)
 #   - DFA:  lambda_dfa,  eta_dfa   (carried over from Example 5, previous tutorial)
 #
-# Important Implementation Note:
-#   The univariate DFA in this example relies on the legacy dfa_analytic() function,
-#   which does not support multivariate (i.e., multi-input) filter designs.
-#   As a result (regrettably), the ATS trilemma parameterization is not numerically identical
-#   between dfa_analytic() and the novel mdfa_analytic() function.
-#   Nevertheless, both implementations share the same conceptual structure —
-#   in particular, the efficient frontier and the trilemma trade-offs are fully
-#   preserved in both frameworks.
 # ------------------------------------------------------------------------------
+# Important Implementation Note:
+# ------------------------------------------------------------------------------
+# The univariate DFA in this example relies on the legacy dfa_analytic() function,
+# which does not support multivariate (i.e., multi-input) filter designs.
+#
+# As a consequence, the ATS trilemma parameterization is not numerically identical
+# between dfa_analytic() and the more general mdfa_analytic() function — the two
+# implementations differ in their internal scaling of lambda and eta.
+#
+# Importantly, however, this discrepancy is purely cosmetic:
+#   - The differences amount to arbitrary (re-)scalings of the penalty parameters
+#     and carry no conceptual significance.
+#   - Both implementations share the same underlying structure: the efficient
+#     frontier is preserved, and the fundamental trilemma trade-offs among
+#     Accuracy (A), Timeliness (T), and Smoothness (S) operate identically
+#     in both frameworks.
+#
+# In short: the parameter scales differ across the two functions, but the
+# trilemma geometry — and all conclusions drawn from it — remains unaffected.
+# ------------------------------------------------------------------------------
+
 lambda_mdfa <- c(0, 100)
-eta_mdfa    <- c(0, 0.6)
+eta_mdfa    <- c(0, 10)
 
 # Display the customization grid as a labelled table for clarity
 table_mat           <- rbind(lambda_mdfa, eta_mdfa,lambda_dfa,eta_dfa)
@@ -1241,7 +1284,7 @@ table_mat
 a1 <- 0.08
 
 # Number of Monte Carlo simulation replications
-anzsim <- 500
+anzsim <- 100
 
 # --- Target Filter ------------------------------------------------------------
 # Ideal low-pass filter: standard target in business-cycle analysis
@@ -1316,27 +1359,27 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 # ==============================================================================
 #
 # 1. MSE Performance:
-#    - Bivariate MSE-MDFA (cyan) achieves the lowest out-of-sample MSE.
+#    - Bivariate MSE-MDFA (cyan) achieves the lowest out-of-sample MSE (even in the presence of overfitting).
 #    - MSE-DFA (red) ranks second.
-#    - Customized MDFA (violet) and customized DFA (green) perform comparably,
-#      but at the cost of higher MSE relative to their MSE-optimal counterparts.
+#    - Customized MDFA (violet) does slightly better than customized DFA (green) 
+#      but both lose relative to their MSE-optimal counterparts.
 #
 # 2. Timeliness (Peak Correlation) & Smoothness (Curvature):
 #    - Bivariate customized MDFA (violet) outperforms all competing designs
-#      simultaneously across both criteria.
+#      simultaneously across both criteria: better (smaller) T and better (smaller) S.
 #
 # 3. Multivariate vs. Univariate Customization:
-#    - At similar (or marginally better) MSE levels, the bivariate MDFA
+#    - At slightly better MSE levels, the bivariate MDFA
 #      consistently dominates its univariate DFA counterpart in terms of
 #      both Timeliness (T) and Smoothness (S).
-#    - This simultaneous gain in T and S — while holding MSE roughly constant —
+#    - This simultaneous gain in T and S — while even slightly improving MSE —
 #      is not achievable within a univariate design, as it would violate the
 #      efficient frontier constraints of the ATS trilemma (Pareto Optimality).
 #
 # 4. On the Choice of Lambda and Eta:
 #    - The specific lambda/eta values used here are illustrative and were not
 #      exhaustively tuned; better-performing configurations likely exist.
-#    - It is reasonable to expect that further parameter search could yield
+#       - It is reasonable to expect that further parameter search could yield
 #      even faster and smoother filter outputs.
 #    - More generally, for a given MSE budget, one can always find lambda/eta
 #      settings such that the MDFA is simultaneously faster (better T) and
@@ -1350,17 +1393,17 @@ boxplot(list(cust_leading_obj$perf_out_sample[,3,1],cust_leading_obj$perf_out_sa
 # 5. Leads Without Leading Indicators and spurious leads:
 #    - Examples 5 and 6 demonstrate that it is not necessary to incorporate a
 #      leading indicator in order to generate a phase advance (left-shift) in
-#      the filter output.
+#      the filter output. The univariate customized DFA was faster than MSE-MDFA.
 #    - However, not all such leads are genuinely informative — a filter may
 #      appear to anticipate turning points simply as an artifact of the
 #      customization, rather than due to any true predictive content.
-#      This distinction is discussed in detail below.
+#      This distinction is discussed below.
 #
 #    We deliberately emphasize this counterintuitive result to guide users
 #    toward the design of interpretable MDFA predictors — filters whose
 #    time-shift advantage has a transparent, economically or statistically
 #    grounded origin, rather than emerging as an unexplained byproduct of
-#    parameter tuning.
+#    emphasizing T over A and/or S in the trilemma.
 
 # ==============================================================================
 
