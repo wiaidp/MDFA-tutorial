@@ -1,8 +1,12 @@
 MDFA Tutorial — GitHub Project
 
-The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA (Multivariate Direct Filter Approach).
 
 
+The MDFA (Multivariate Direct Filter Approach) provides a unified framework for solving general prediction problems while simultaneously accommodating specific research priorities and objectives.
+
+
+
+The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA. 
 
 \####
 

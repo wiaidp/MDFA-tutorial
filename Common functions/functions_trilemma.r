@@ -1,7 +1,6 @@
 # Copyright: Marc Wildi
-# 30.10.2014
-# http://blog.zhaw.ch/sef/
-# http://www.mdfapartners.com/
+# 01.01.2026
+# http://marcwildi.com
 
 
 
