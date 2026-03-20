@@ -6,7 +6,7 @@ The MDFA (Multivariate Direct Filter Approach) provides a unified framework for 
 
 
 
-The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA. 
+The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA.
 
 \####
 
@@ -152,5 +152,5 @@ Tutorial:
 
 
 
-The MDFA tutorial addresses the above methodological considerations through a comprehensive set of exercises. Among others, it replicates classical ARIMA/VARIMA forecasting, Wiener-Kolmogorov signal extraction, and the Hodrick-Prescott, Christiano-Fitzgerald, Hamilton, and Beveridge-Nelson filters within the (M)DFA framework. Once replicated, any of these designs can be further customized to improve trade-offs along the ATS performance dimensions. The tutorial covers both univariate and multivariate settings, parametric and non-parametric extensions, as well as stationary and non-stationary data-generating processes. In addition, it assesses in- and out-of-sample performances and overfitting, and introduces a novel set of regularization techniques specifically tailored to the (M)DFA framework. The tutorial is designed to be an engaging, instructive, and enjoyable experience throughout.
+The MDFA tutorial addresses the above methodological considerations through a comprehensive set of exercises. Among others, it replicates classical ARIMA/VARIMA forecasting, Wiener-Kolmogorov signal extraction, and the Hodrick-Prescott, Christiano-Fitzgerald, Hamilton, and Beveridge-Nelson filters within the (M)DFA framework. Once replicated, any of these designs can be further customized to improve trade-offs along the ATS performance dimensions. The tutorial covers both univariate and multivariate settings, parametric and non-parametric extensions, as well as stationary and non-stationary data-generating processes. In addition, it assesses in- and out-of-sample performances and overfitting, and introduces a novel set of regularization techniques specifically tailored to the (M)DFA framework. 
 

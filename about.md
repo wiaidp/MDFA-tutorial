@@ -1,8 +1,10 @@
-About Me
+Author: Marc Wildi — https://marcwildi.com
 
 
 
-My name is Marc Wildi. I am a Professor of Econometrics at the Zurich University of Applied Sciences. My primary research interests lie in forecasting and signal extraction. Over the years, I have developed (partly alone, partly in cooperation with fellow researchers) a number of novel forecasting frameworks designed to tackle real-world prediction challenges and to reconcile various — sometimes competing — research objectives within a unified forecast optimization criterion:
+
+
+I am a Professor of Econometrics at the Zurich University of Applied Sciences. My primary research interests lie in forecasting and signal extraction. Over the years, I have developed (partly alone, partly in cooperation with fellow researchers) a number of novel forecasting frameworks designed to tackle real-world prediction challenges and to reconcile various — sometimes competing — research objectives within a unified forecast optimization criterion:
 
 
 
