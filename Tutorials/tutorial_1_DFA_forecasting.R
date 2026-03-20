@@ -3,6 +3,9 @@
 # (Multivariate Direct Filter Approach)
 # ════════════════════════════════════════════════════════════════════
 
+# The MDFA (Multivariate Direct Filter Approach) provides a unified framework for solving 
+# general prediction problems while simultaneously accommodating specific research priorities and objectives.
+
 # ── THEORETICAL FOUNDATIONS ───────────────────────────────────────
 # The theoretical foundations and principles underlying MDFA are
 # documented in the following references:
@@ -67,20 +70,24 @@
 #   • Smoothness in M-SSA
 #       → Measured as the mean duration between consecutive
 #         sign changes of a zero-mean predictor (holding-time)
+#       → Measured as the mean duration between consecutive
+#         sign changes of a zero-mean predictor (holding-time)
 #       → Yields more direct and intuitive interpretation
 #         than the MDFA amplitude-based formulation
+#       → Extends to max-monotonic and min-curvature 
+#         predictors for integrated processes.
 #
 #   • Timeliness in DFP/PCS
 #       → Quantified via the effective time-shift of the predictor
-#         (rather than phase in the frequency domain)
+#         (rather than phase in the frequency domain for MDFA)
 #       → Yields more direct and intuitive interpretation
 #         than the MDFA phase-based formulation
 # ════════════════════════════════════════════════════════════════════
-# This introductory tutorial to the MDFA consists of 6 exercises covering the
-# foundations of MDFA.
+# This introductory tutorial to the MDFA covers the univariate DFA. It consists of 6 exercises covering the
+# foundations of (M)DFA.
 
 # ── PURPOSE ───────────────────────────────────────────────────────
-# The Direct Filter Approach (DFA) can replicate classical MSE-based
+# The (univariate) Direct Filter Approach (DFA) can replicate classical MSE-based
 # one- and multi-step ahead forecasting by:
 #
 #   • Specifying a corresponding target (allpass filter) and
@@ -91,7 +98,7 @@
 # (e.g., ARIMA-based) forecasting can be fully replicated within the DFA
 # framework.
 #   → Once grounded in this familiar territory, subsequent tutorials
-#     deploy the additional flexibility of DFA beyond classical MSE
+#     deploy the additional flexibility of DFA beyond classical MSE (customization)
 
 # ── NON-PARAMETRIC DFA ────────────────────────────────────────────
 # The tutorial concludes by illustrating the relevance of a
@@ -101,7 +108,7 @@
 #
 # Key findings:
 #
-#   1. Out-of-sample forecast performance of DFT-based DFA is
+#   1. Out-of-sample forecast performance of (non-parametric) DFT-based DFA is
 #      generally close to (or indistinguishable) from the universally best approach
 #      (which assumes full knowledge of the true data-generating
 #      process). Some care must be taken to control for overfitting (as shown along the tutorials).
@@ -684,7 +691,7 @@ abline(v = 21)  # Vertical line separating observed data from the forecast horiz
 #    - The DFT-based spectrum introduces estimation noise into the filter optimization
 #    - This noise is amplified for larger L (more filter coefficients to estimate)
 #    - In contrast, the smooth ARMA spectrum in Example 3 is less prone to overfitting by DFA
-#    - But the ARMA-parameters are to some extent overfitted (they differ from true values)
+#    - But the ARMA-parameters are also overfitted (they differ from true values)
 #
 # 3. Regularization (upcoming tutorial):
 #    - Overfitting under non-parametric spectra can be mitigated via regularization,
@@ -821,7 +828,7 @@ for (i in 1:anzsim)
 #
 # Interpretation:
 #   - A ratio < 1 means DFA performs worse than the ideal ARMA benchmark.
-#   - Asymptotically, the ratio cannot exceed 1 under correct ARMA specification,
+#   - Asymptotically (for large anzsim), the ratio cannot exceed 1 under correct ARMA specification,
 #     since MLE-based ARMA is the theoretically optimal forecast in this setting.
 #
 # Observed results:
