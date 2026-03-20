@@ -8,17 +8,21 @@ The MDFA (Multivariate Direct Filter Approach) provides a unified framework for 
 
 The MDFA Tutorial is a collection of exercises and case studies designed to introduce users to — and provide hands-on experience with — the MDFA.
 
+
+
 \####
 
 Author: Marc Wildi — https://marcwildi.com
 
-\####
+
 
 Repository: https://github.com/wiaidp/MDFA-tutorial
 
-\####
+
 
 Background (references \& links): https://wiaidp.github.io/MDFA-tutorial/about
+
+
 
 \####
 
@@ -47,6 +51,14 @@ The project directory is organized into four sub-folders:
 Getting started: Open the R project by clicking the project icon located in the main MDFA-tutorial folder. This will launch the project in RStudio. From there, load any tutorial file from the Tutorials sub-folder and run the code. Tutorials are arranged in order of increasing complexity.
 
 
+
+
+
+\######################################################################################
+
+Background:
+
+\####################################################################################
 
 \####
 
@@ -128,19 +140,17 @@ Key properties of the approach include:
 
 
 
-Generality — classical linear forecasting methods emerge as special cases, which can then be refined to reflect specific research priorities (customization)
+A. Generality — classical linear forecasting methods emerge as special cases, which can then be refined to reflect specific research priorities (customization)
 
 
 
-Interpretability — optimization criteria are grounded in clear, fundamental principles, yielding closed-form solutions that are uniquely determined
+B. Interpretability — optimization criteria are grounded in clear, fundamental principles, yielding closed-form solutions that are uniquely determined
 
 
 
-Transparency — unlike black-box methods, MDFA provides a direct window into the forecasting mechanism
+C. Transparency — unlike black-box methods, MDFA provides a direct window into the forecasting mechanism
 
 
-
-\####
 
 These qualities make the MDFA especially well-suited for settings where opacity is either prohibited — such as compliance-driven or regulatory environments — or simply undesirable, such as when a deeper understanding of the underlying forecasting logic is required.
 
@@ -152,5 +162,5 @@ Tutorial:
 
 
 
-The MDFA tutorial addresses the above methodological considerations through a comprehensive set of exercises. Among others, it replicates classical ARIMA/VARIMA forecasting, Wiener-Kolmogorov signal extraction, and the Hodrick-Prescott, Christiano-Fitzgerald, Hamilton, and Beveridge-Nelson filters within the (M)DFA framework. Once replicated, any of these designs can be further customized to improve trade-offs along the ATS performance dimensions. The tutorial covers both univariate and multivariate settings, parametric and non-parametric extensions, as well as stationary and non-stationary data-generating processes. In addition, it assesses in- and out-of-sample performances and overfitting, and introduces a novel set of regularization techniques specifically tailored to the (M)DFA framework. 
+The MDFA tutorial addresses the above methodological considerations through a comprehensive set of exercises. Among others, it replicates classical ARIMA/VARIMA forecasting, Wiener-Kolmogorov signal extraction, and the Hodrick-Prescott, Christiano-Fitzgerald, Hamilton, and Beveridge-Nelson filters within the (M)DFA framework. Once replicated, any of these designs can be further customized to improve trade-offs along the ATS performance dimensions. The tutorial covers both univariate and multivariate settings, parametric and non-parametric extensions, as well as stationary and non-stationary data-generating processes. In addition, it assesses in- and out-of-sample performances and overfitting, and introduces a novel set of regularization techniques specifically tailored to the (M)DFA framework.
 
