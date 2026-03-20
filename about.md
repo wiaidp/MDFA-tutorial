@@ -56,9 +56,7 @@ II) Articles
 
 
 
-Wildi, M. \& McElroy, T. (2019). The trilemma between accuracy, timeliness and smoothness in real-time signal extraction. International Journal of Forecasting, Volume 35, Issue 3.
-
-https://doi.org/10.1016/j.ijforecast.2019.03.008
+Wildi, M. \& McElroy, T. (2019). The trilemma between accuracy, timeliness and smoothness in real-time signal extraction. International Journal of Forecasting, Volume 35, Issue 3. https://doi.org/10.1016/j.ijforecast.2019.03.008
 
 
 
@@ -66,9 +64,7 @@ https://doi.org/10.1016/j.ijforecast.2019.03.008
 
 
 
-Wildi, M. \& McElroy, T. (2016). Optimal real-time filters for linear prediction problems. Journal of Time Series Econometrics, Volume 8, Issue 2.
-
-https://doi.org/10.1515/jtse-2014-0019
+Wildi, M. \& McElroy, T. (2016). Optimal real-time filters for linear prediction problems. Journal of Time Series Econometrics, Volume 8, Issue 2. https://doi.org/10.1515/jtse-2014-0019
 
 
 
@@ -76,9 +72,7 @@ https://doi.org/10.1515/jtse-2014-0019
 
 
 
-Wildi, M. \& McElroy, T. (2020). The multivariate linear prediction problem: Model-based and direct filtering solutions. Econometrics and Statistics, Volume 14.
-
-https://doi.org/10.1016/j.ecosta.2019.12.004
+Wildi, M. \& McElroy, T. (2020). The multivariate linear prediction problem: Model-based and direct filtering solutions. Econometrics and Statistics, Volume 14. https://doi.org/10.1016/j.ecosta.2019.12.004
 
 
 
