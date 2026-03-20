@@ -10,15 +10,15 @@ I am a Professor of Econometrics at the Zurich University of Applied Sciences. M
 
 
 
-a) MDFA (initiated in 2005): available in this repository
+a) MDFA (initiated in 2005): available in this repository (https://github.com/wiaidp/MDFA-tutorial)
 
 
 
-b) M-SSA (initiated in 2020): available in a separate GitHub repository
+b) M-SSA (initiated in 2020): available in a separate GitHub repository (https://github.com/wiaidp/R-package-SSA-Predictor)
 
 
 
-c) Look-Ahead DFP and PCS (initiated in 2024): available in a separate GitHub repository
+c) Look-Ahead DFP and PCS (initiated in 2024): in the works
 
 
 
@@ -90,5 +90,5 @@ Quast, J., van Norden, S. \& Wildi, M. (2026). Credit cycles and credit crises: 
 
 
 
-Working paper versions of the above articles can be found in the Literature folder of the MDFA tutorial project. The most recent cited work (2026) analyses DFA in the context of financial crisis prediction, comparing filter characteristics and classification performance against the HP (lambda=400'000), Hamilton (h=20, p=4), and simple difference filters (1-B^20). The DFA design relies on a white noise assumption (flat spectrum), which avoids data snooping, and is applied to differenced Credit-to-GDP data for a selection of approximately 50 countries.
+Working paper versions of the above articles can be found in the Literature folder of the MDFA tutorial project. The most recent cited work (2026) analyses DFA in the context of financial crisis prediction, comparing filter characteristics and classification performance against the HP (lambda=400'000), Hamilton (h=20, p=4), and simple difference filters (1-B^20). 
 
