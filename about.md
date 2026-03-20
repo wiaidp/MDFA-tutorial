@@ -58,6 +58,8 @@ II) Articles
 
 Wildi, M. \& McElroy, T. (2019). The trilemma between accuracy, timeliness and smoothness in real-time signal extraction. International Journal of Forecasting, Volume 35, Issue 3.
 
+https://doi.org/10.1016/j.ijforecast.2019.03.008
+
 
 
 
@@ -66,6 +68,8 @@ Wildi, M. \& McElroy, T. (2019). The trilemma between accuracy, timeliness and s
 
 Wildi, M. \& McElroy, T. (2016). Optimal real-time filters for linear prediction problems. Journal of Time Series Econometrics, Volume 8, Issue 2.
 
+https://doi.org/10.1515/jtse-2014-0019
+
 
 
 
@@ -73,6 +77,8 @@ Wildi, M. \& McElroy, T. (2016). Optimal real-time filters for linear prediction
 
 
 Wildi, M. \& McElroy, T. (2020). The multivariate linear prediction problem: Model-based and direct filtering solutions. Econometrics and Statistics, Volume 14.
+
+https://doi.org/10.1016/j.ecosta.2019.12.004
 
 
 
@@ -90,5 +96,5 @@ Quast, J., van Norden, S. \& Wildi, M. (2026). Credit cycles and credit crises: 
 
 
 
-Working paper versions of the above articles can be found in the Literature folder of the MDFA tutorial project. The most recent cited work (2026) analyses DFA in the context of financial crisis prediction, comparing filter characteristics and classification performance against the HP (lambda=400'000), Hamilton (h=20, p=4), and simple difference filters (1-B^20). 
+Working paper versions of the above articles can be found in the Literature folder of the MDFA tutorial project. The most recent cited work (2026) analyses DFA in the context of financial crisis prediction, comparing filter characteristics and classification performance against the HP (lambda=400'000), Hamilton (h=20, p=4), and simple difference filters (1-B^20).
 
