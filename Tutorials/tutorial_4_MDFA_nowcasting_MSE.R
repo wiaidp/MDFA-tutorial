@@ -375,7 +375,8 @@ play_obj$perf_mse      # Inspect MSE performance table   (Toggle Points 2 & 3)
 #     coefficients and is therefore more prone to overfitting.
 #
 # Toggle Point 3 — Visual inspection of filter outputs:
-#   - The bivariate filter output generally anticipates turning points,
+#   - The bivariate filter (green) output generally anticipates turning points
+#     when compared to DFA (blue),
 #     consistent with its exploitation of the leading indicator.
 #   - Both one-sided filter outputs show a slight delay relative to the
 #     ideal lowpass target — though this delay is modest due to the strong
@@ -421,7 +422,7 @@ play_obj$perf_mse
 #   - Filtered outputs are less smooth than in Example 1, as expected given
 #     the noisier input; both outputs show slightly more delay due to heavier
 #     smoothing requirements.
-#   - The bivariate filter output leads the univariate output by approximately
+#   - The bivariate filter output (green) leads the univariate output (blue) by approximately
 #     one time step, consistent with the one-period anticipation built into
 #     the leading indicator.
 # -----------------------------------------------------------------------------
@@ -474,8 +475,8 @@ play_obj$perf_mse
 # =============================================================================
 # Example 5: Short in-sample span — examining overfitting under data scarcity
 # =============================================================================
-# Same as Example 3 (near-white-noise, moderate indicator noise), but with a
-# drastically reduced in-sample length (len = 100). This stresses the
+# Same as Example 4 (near-white-noise, moderate indicator noise), but with a
+# drastically reduced in-sample length (len = 100) and moderate indicator noise. This stresses the
 # bivariate design: fitting 2*L = 24 coefficients on only 100 observations
 # corresponds to solving a system with 49 complex-valued frequency equations
 # plus 2 real-valued boundary equations (at frequencies 0 and pi),
@@ -521,7 +522,7 @@ play_obj$perf_mse
 # =============================================================================
 # Example 6: Extreme overfitting — bivariate filter with 2*L/len = 0.5
 # =============================================================================
-# Same setup as Example 3 (near-white-noise, moderate indicator noise), but
+# Same setup as Example 5 (near-white-noise, moderate indicator noise), but
 # with an aggressively large filter length L = 25. The bivariate design now
 # estimates 2*L = 50 coefficients on only 100 in-sample observations —
 # a 1:2 parameter-to-observation ratio that constitutes a severe overfitting
