@@ -43,7 +43,7 @@
 #   - S : contribution of amplitude mismatch in the stopband
 #   - R : contribution of phase-shift mismatch in the stopband
 #
-# Since R ≈ 0 in practice, the decomposition simplifies to: MSE ≈ A + T + S
+# Since R ≈ 0 in practice (see cited literature), the decomposition simplifies to: MSE ≈ A + T + S
 #
 # The customized criterion generalizes the MSE as follows:
 #   MSE_cust = MSE + lambda * T + eta * S = A + (1 + lambda) * T + (1 + eta) * S
@@ -106,7 +106,7 @@
 #     - eta         : weight assigned to S is (1 + eta)
 #
 # - Note: cutoff, lambda and eta are absent from MDFA_mse(), which implicitly sets
-#   lambda = eta = 0, corresponding to pure MSE minimization
+#   lambda = eta = 0 and cutoff=pi, corresponding to pure MSE minimization
 # - Note: mdfa_analytic() enforces non-negativity of lambda and eta;
 #   negative values are automatically converted via abs()
 # ==============================================================================
