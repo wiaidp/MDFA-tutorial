@@ -48,7 +48,7 @@
 # Historical context:
 #   • DFA/MDFA   → origins in 2002 research and culminates in new MDFA book coauthored with Tucker McElroy (MDFA tutorials repository on github)
 #   • M-SSA      → developed from early 2020 (M-SSA tutorials repository on github)
-#   • DFP/PCS    → developed from mid 2020 (I'm on it)
+#   • DFP/PCS    → developed from mid 2020 (working on it)
 #
 # Common ground:
 #   All three prediction frameworks are organized around the forecast trilemma,
@@ -68,8 +68,6 @@
 #         respectively — see cited literature for details
 #
 #   • Smoothness in M-SSA
-#       → Measured as the mean duration between consecutive
-#         sign changes of a zero-mean predictor (holding-time)
 #       → Measured as the mean duration between consecutive
 #         sign changes of a zero-mean predictor (holding-time)
 #       → Yields more direct and intuitive interpretation
@@ -119,8 +117,7 @@
 # Implication:
 #   → These results support the use of the non-parametric
 #     (DFT-based) DFA approach across a wide range of applications —
-#     especially when model misspecification is a concern,
-#     as is invariably the case with real-world data
+#     especially when model misspecification is a concern.
 
 # ── FUNCTIONS AND PARAMETERS ──────────────────────────────────────
 # Throughout this tutorial, we rely on the function MDFA_mse:
@@ -283,6 +280,7 @@ box()
 #     3. Amplitude (gain) function across frequencies
 #
 # Interpretation:
+#   - Filter coefficients: are nearly vanishing (increasing L enforces zero-shrinkage)
 #   - Amplitude: the estimated gain (black line) is close to zero across all frequencies,
 #     as expected for a white noise process (no forecastable signal exists)
 #     * Small deviations from zero are due to the finite frequency grid (K < ∞)
@@ -624,7 +622,7 @@ Gamma <- rep(1, K + 1)
 #   - Examples of short-memory series:
 #       * Price series: approximately random walks (after differencing)
 #       * Log-returns:  approximately white noise
-#   - Overfitting under non-parametric spectra is more pronounced than under model-based
+#   - Overfitting under non-parametric spectra is generally more pronounced than under model-based
 #     spectra, and grows with L (addressed in a later tutorial on regularization)
 L <- 10
 
@@ -685,7 +683,7 @@ abline(v = 21)  # Vertical line separating observed data from the forecast horiz
 #      the model-based ARIMA forecasts
 #    - The difference arises because the DFT is a noisy spectral estimate:
 #      it captures sample-specific fluctuations rather than the `true' smooth spectrum
-#    -Model-based spectrum is also an approximation of the true spectrum. In constrast to DFT it is smooth. 
+#    -Model-based spectrum is also an approximation of the true spectrum. In contrast to DFT it is smooth. 
 #
 # 2. Overfitting risk:
 #    - The DFT-based spectrum introduces estimation noise into the filter optimization
@@ -1025,11 +1023,11 @@ sqrt(mean(mse_burg) / mean(mse_dfa))
 
 
 # =============================================================================
-# Wrap-Up: Key Takeaways from Examples 5 and 6
+# Wrap-Up: Key Takeaways 
 # =============================================================================
 # The DFA framework is a flexible and powerful alternative to classical
 # model-based forecasting. Specifically, we have demonstrated that:
-#
+
 #   1. DFA can replicate classical MSE-optimal one- and multi-step-ahead
 #      forecasts by:
 #        - Setting an allpass target (Gamma = 1) to recover the full signal.
@@ -1044,16 +1042,62 @@ sqrt(mean(mse_burg) / mean(mse_dfa))
 #   3. The choice of spectral estimate (DFT periodogram vs. Burg AR-based)
 #      does not materially affect forecast performance at L = 10:
 #        - Both yield virtually identical RMSFE.
-#        - The DFT, being assumption-free, is therefore the preferred choice
+#        - The DFT, being assumption-free, is often preferred
 #          for its simplicity and generality.
 #
-#   4. Overall conclusion: a carefully applied non-parametric DFA based on
-#      the DFT is a robust, model-free forecasting tool that competes with
-#      the best parametric approaches — without requiring model identification.
+#   4. Interpretability: Spectrum
+#        - The spectrum serves as a frequency-domain weighting function:
+#          it assigns large weights to frequencies where the predictor
+#          must closely match the target, and small weights to frequencies
+#          where a less accurate fit is acceptable.
+#        - Predictor performance is therefore directly tied to the quality
+#          of the chosen spectrum: a well-chosen spectrum yields an
+#          efficient and accurate predictor, while a poorly chosen one
+#          may lead to degraded performance.
 #
-#   5. The main purpose of DFA is not replication of classic forecasting.
-#      Instead we wish to modify forecasts according to alternative priorities 
-#      (than MSE optimality), see exercise 2 above. 
+#   5. Interpretability: Target
+#        - The target in DFA provides a natural and flexible way to encode
+#          the purpose of the forecast in the frequency domain:
+#            * Classic forecasting corresponds to a flat (allpass) target:
+#              all frequencies are treated as equally important.
+#            * Trend extraction is expressed via a lowpass target.
+#            * Cycle extraction is expressed via a bandpass target.
+#            * Trend removal (detrending) is expressed via a highpass target.
+#            * Seasonal adjustment is expressed via a multi-lobe target,
+#              nulling out seasonal frequency bands.
+#
+#   6. Interface:
+#        - Taken together, the target, the spectrum, and the Lag parameter
+#          form an intuitive and general user interface for specifying the
+#          structure of a given prediction problem:
+#            * Target:   defines what is to be predicted (forecast purpose).
+#            * Spectrum: defines the frequency-domain weighting (fit priorities).
+#            * Lag:      defines the forecast horizon.
+#
+#   7. Agnostic Forecast Approach:
+#        - The examples above illustrated the application of various
+#          spectral weighting functions: classic model-based,
+#          non-parametric, and Burg.
+#        - No single approach is advocated over another: each has its
+#          own strengths and weaknesses, and the best choice is
+#          problem- and user-dependent.
+#        - Rather, we emphasize the importance of reformulating the
+#          original time-domain forecast problem in the frequency domain,
+#          through the joint specification of target and spectral
+#          weighting functions.
+#        - The generality of (M)DFA, and its key advantages over the
+#          classic MSE forecast approach, stem from this frequency-domain
+#          reformulation -- and hold irrespective of the particular
+#          target or spectral estimate employed.
+#
+#   8. Scope and Purpose:
+#        - Replicating classic MSE forecasts, as demonstrated above, is
+#          not the primary goal of DFA (see subsequent Tutorials).
+#        - Rather, the key strength of DFA lies in its ability to modify
+#          and tailor forecasts according to alternative priorities,
+#          as formalized by the ATS Trilemma (Accuracy, Timeliness,
+#          Smoothness).
+#
 # =============================================================================
 
 
