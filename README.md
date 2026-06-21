@@ -48,7 +48,7 @@ The project directory is organized into four sub-folders:
 
 
 
-Getting started: Download the project to a local folder; open the R project by clicking the project icon located in the main MDFA-tutorial folder. This will launch the project in RStudio. From there, load any tutorial file from the Tutorials sub-folder and run the code. Tutorials are arranged in order of increasing complexity.
+Getting started: Download the MDFA GitHub project to a local folder. In this folder, open the R project by clicking the MDFA\_project icon. This will launch MDFA in RStudio. From there, load any tutorial file from the Tutorials sub-folder and run the code. Tutorials are arranged in order of increasing complexity.
 
 
 
